@@ -1,30 +1,28 @@
 /**
  * Bites2Bytes - Utilities
- * Fungsi untuk menganimasi angka (Count Up)
+ * Shared helpers for UI state, profile settings, and exports.
  */
 
 function animateCount(el, end, duration = 2500, decimals = 0) {
     if (!el) return;
-    
+
     const startTime = performance.now();
-    
+
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        
-        // Easing function (easeOutExpo)
         const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-        
         const currentValue = (easeProgress * end).toFixed(decimals);
+
         el.textContent = currentValue;
-        
+
         if (progress < 1) {
             requestAnimationFrame(update);
         } else {
             el.textContent = end.toFixed(decimals);
         }
     }
-    
+
     requestAnimationFrame(update);
 }
 
@@ -35,94 +33,191 @@ function getCurrentUserProfile() {
     return {
         ...rawUser,
         photoUrl: rawUser.photoUrl || rawUser.photo_url || '',
+        photo_url: rawUser.photo_url || rawUser.photoUrl || '',
         bio: rawUser.bio || '',
         extra: rawUser.extra || '',
         name: rawUser.name || 'User'
     };
 }
 
-/**
- * Toggle Dropdown Menu
- */
+function persistProfileLocally(profile) {
+    const normalized = {
+        ...profile,
+        photoUrl: profile.photoUrl || profile.photo_url || '',
+        photo_url: profile.photo_url || profile.photoUrl || '',
+        bio: profile.bio || '',
+        extra: profile.extra || ''
+    };
+
+    localStorage.setItem('b2b_currentUser', JSON.stringify(normalized));
+
+    if ((normalized.role || '').toLowerCase() === 'admin') {
+        localStorage.setItem('b2b_admin_profile', JSON.stringify({
+            id: normalized.id,
+            wa_number: normalized.wa_number || normalized.id,
+            name: normalized.name,
+            role: normalized.role,
+            extra: normalized.extra,
+            mpin: normalized.mpin || '123456',
+            honorarium: normalized.honorarium || 0,
+            sessions_completed: normalized.sessions_completed || 0,
+            created_at: normalized.created_at || new Date().toISOString(),
+            bio: normalized.bio,
+            photo_url: normalized.photo_url
+        }));
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+    let matchedUser = false;
+    const nextUsers = users.map((user) => {
+        if (user.id !== normalized.id && user.id !== normalized.wa_number) return user;
+        matchedUser = true;
+
+        return {
+            ...user,
+            id: normalized.wa_number || normalized.id,
+            name: normalized.name,
+            role: normalized.role,
+            extra: normalized.extra,
+            mpin: normalized.mpin || user.mpin || '',
+            honorarium: normalized.honorarium || user.honorarium || 75000,
+            sessionsCompleted: normalized.sessions_completed || user.sessionsCompleted || 0,
+            bio: normalized.bio,
+            photoUrl: normalized.photoUrl
+        };
+    });
+
+    if (!matchedUser) {
+        nextUsers.push({
+            id: normalized.wa_number || normalized.id,
+            name: normalized.name,
+            role: normalized.role,
+            extra: normalized.extra,
+            mpin: normalized.mpin || '',
+            honorarium: normalized.honorarium || 75000,
+            sessionsCompleted: normalized.sessions_completed || 0,
+            bio: normalized.bio,
+            photoUrl: normalized.photoUrl
+        });
+    }
+
+    localStorage.setItem('b2b_users', JSON.stringify(nextUsers));
+}
+
 window.toggleDropdown = function(dropdownId) {
     const dropdown = document.getElementById(dropdownId);
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-    }
+    if (dropdown) dropdown.classList.toggle('hidden');
 };
 
-/**
- * Close Modal
- */
 window.closeModal = function(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (modal) modal.classList.add('hidden');
 };
 
-/**
- * Handle Logout (Supabase Integrated)
- */
 window.handleLogout = async function() {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
         try {
             if (window.B2B_Supabase && window.B2B_Supabase.client) {
                 await window.B2B_Supabase.client.auth.signOut();
             }
-            // Clear local session data
             sessionStorage.clear();
             localStorage.removeItem('b2b_currentUser');
-            // Redirect to login page
             window.location.href = '/login';
         } catch (err) {
-            console.error("Logout error:", err);
+            console.error('Logout error:', err);
             window.location.href = '/login';
         }
     }
 };
 
-/**
- * Open Account Settings Modal
- */
+function getRoleLabel(role) {
+    if (role === 'admin') return 'Admin';
+    if (role === 'teacher') return 'Teacher';
+    return 'Student';
+}
+
+function getRoleFieldMarkup(role, currentUser) {
+    if (role === 'teacher') {
+        return `
+            <div class="form-group mb-0">
+                <label class="text-sm text-muted">Mata Pelajaran yang Diampu</label>
+                <textarea id="settings-extra" class="form-control" rows="3" placeholder="Contoh: Algoritma, Web Development, UI/UX">${currentUser.extra || ''}</textarea>
+            </div>
+        `;
+    }
+
+    if (role === 'admin') {
+        return `
+            <div class="form-group mb-0">
+                <label class="text-sm text-muted">Area Tanggung Jawab</label>
+                <input type="text" id="settings-extra" class="form-control" value="${currentUser.extra || ''}" placeholder="Contoh: Operasional Platform">
+            </div>
+        `;
+    }
+
+    return `
+        <div class="form-group mb-0">
+            <label class="text-sm text-muted">Kelas / Tingkat</label>
+            <input type="text" id="settings-extra" class="form-control" value="${currentUser.extra || ''}" placeholder="Contoh: Kelas 10-A / Web Pro">
+        </div>
+    `;
+}
+
 window.openSettingsModal = function() {
     let modal = document.getElementById('settings-modal');
-    
+
     if (!modal) {
         const modalHTML = `
         <div id="settings-modal" class="modal hidden">
-            <div class="modal-content glass" style="max-width: 500px;">
+            <div class="modal-content glass" style="max-width: 680px; width: calc(100% - 32px);">
                 <div class="flex-between mb-20">
-                    <h2 class="fw-bold">Pengaturan Profil 👤</h2>
-                    <button class="icon-btn" onclick="closeModal('settings-modal')">✕</button>
+                    <h2 class="fw-bold">Pengaturan Akun</h2>
+                    <button class="icon-btn" onclick="closeModal('settings-modal')">X</button>
                 </div>
                 <form id="settings-form">
-                    <div class="flex flex-column items-center mb-20">
-                        <div class="avatar-preview mb-10" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; background: var(--border-color); display: flex; align-items: center; justify-content: center; border: 2px solid var(--primary-color);">
-                            <img id="settings-photo-preview" src="" alt="Preview" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
-                            <span id="settings-avatar-placeholder" class="text-2xl">👤</span>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:24px; align-items:start;">
+                        <div class="glass" style="padding:20px; border-radius:16px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+                            <div class="avatar-preview" style="width:112px; height:112px; border-radius:50%; overflow:hidden; background:var(--border-color); display:flex; align-items:center; justify-content:center; border:2px solid var(--primary-color);">
+                                <img id="settings-photo-preview" src="" alt="Preview" class="hidden" style="width:100%; height:100%; object-fit:cover;">
+                                <span id="settings-avatar-placeholder" class="text-2xl">User</span>
+                            </div>
+                            <div class="text-center">
+                                <div id="settings-role-label" class="badge badge-primary" style="margin-bottom:8px;">Akun</div>
+                                <p class="text-xs text-muted" style="margin:0;">Perubahan di sini akan dipakai di seluruh dashboard.</p>
+                            </div>
+                            <label for="settings-photo-upload" class="btn btn-sm btn-outline cursor-pointer" style="width:100%; justify-content:center;">Unggah Foto</label>
+                            <input type="file" id="settings-photo-upload" class="hidden" accept="image/*">
+                            <input type="hidden" id="settings-photo-url">
                         </div>
-                        <label for="settings-photo-upload" class="btn btn-sm btn-outline cursor-pointer">📤 Unggah Foto</label>
-                        <input type="file" id="settings-photo-upload" class="hidden" accept="image/*">
-                        <input type="hidden" id="settings-photo-url">
-                    </div>
-                    <div class="form-group mb-15">
-                        <label class="text-sm text-muted">Nama Lengkap</label>
-                        <input type="text" id="settings-name" class="form-control" required placeholder="Masukkan nama lengkap">
-                    </div>
-                    <div class="form-group mb-15">
-                        <label class="text-sm text-muted">Tentang Saya / Bio Singkat</label>
-                        <textarea id="settings-bio" class="form-control" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
-                    </div>
-                    <div id="settings-extra-fields"></div>
-                    <div id="settings-admin-fields"></div>
-                    <div class="mt-20">
-                        <button type="submit" class="btn btn-primary btn-block" style="width: 100%;">Simpan Perubahan</button>
+
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <div class="glass" style="padding:18px; border-radius:16px;">
+                                <div class="form-group mb-15">
+                                    <label class="text-sm text-muted">Nama Lengkap</label>
+                                    <input type="text" id="settings-name" class="form-control" required placeholder="Masukkan nama lengkap">
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="text-sm text-muted">Tentang Saya / Bio Singkat</label>
+                                    <textarea id="settings-bio" class="form-control" rows="3" placeholder="Ceritakan sedikit tentang dirimu..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="glass" style="padding:18px; border-radius:16px;">
+                                <div id="settings-extra-fields"></div>
+                                <div id="settings-admin-fields"></div>
+                            </div>
+
+                            <div class="mt-5">
+                                <button type="submit" class="btn btn-primary btn-block" style="width:100%;">Simpan Perubahan</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
         `;
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         modal = document.getElementById('settings-modal');
 
@@ -139,6 +234,7 @@ window.openSettingsModal = function() {
                 reader.onload = function(event) {
                     document.getElementById('settings-photo-preview').src = event.target.result;
                     document.getElementById('settings-photo-preview').classList.remove('hidden');
+                    document.getElementById('settings-avatar-placeholder').classList.add('hidden');
                     document.getElementById('settings-photo-url').value = event.target.result;
                 };
                 reader.readAsDataURL(file);
@@ -148,106 +244,101 @@ window.openSettingsModal = function() {
 
     const extraFields = document.getElementById('settings-extra-fields');
     const adminFields = document.getElementById('settings-admin-fields');
+    const roleLabel = document.getElementById('settings-role-label');
+    const preview = document.getElementById('settings-photo-preview');
+    const avatarPlaceholder = document.getElementById('settings-avatar-placeholder');
 
-    // Reset form
     document.getElementById('settings-name').value = '';
     document.getElementById('settings-photo-url').value = '';
     document.getElementById('settings-bio').value = '';
-    document.getElementById('settings-photo-preview').classList.add('hidden');
+    preview.classList.add('hidden');
+    avatarPlaceholder.classList.remove('hidden');
     if (extraFields) extraFields.innerHTML = '';
     if (adminFields) adminFields.innerHTML = '';
 
-    // Populate current data
-    let currentUser = getCurrentUserProfile();
-    let userRole = (currentUser.role || '').toLowerCase();
+    const currentUser = getCurrentUserProfile();
+    const userRole = (currentUser.role || 'student').toLowerCase();
 
     document.getElementById('settings-name').value = currentUser.name || '';
     document.getElementById('settings-photo-url').value = currentUser.photoUrl || '';
     document.getElementById('settings-bio').value = currentUser.bio || '';
-    
-    const preview = document.getElementById('settings-photo-preview');
+
+    if (roleLabel) roleLabel.textContent = getRoleLabel(userRole);
+    if (avatarPlaceholder) avatarPlaceholder.textContent = currentUser.name ? currentUser.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase() : 'U';
+
     if (currentUser.photoUrl) {
         preview.src = currentUser.photoUrl;
         preview.classList.remove('hidden');
+        avatarPlaceholder.classList.add('hidden');
     }
 
-    if (userRole === 'student') {
-        extraFields.innerHTML = `
-            <div class="form-group mb-15">
-                <label class="text-sm text-muted">Kelas / Tingkat 🏫</label>
-                <input type="text" id="settings-extra" class="form-control" value="${currentUser.extra || ''}" placeholder="Contoh: Kelas 10-A / Web Pro">
-            </div>
-        `;
-    } else if (userRole === 'teacher') {
-        extraFields.innerHTML = `
-            <div class="form-group mb-15">
-                <label class="text-sm text-muted">Mata Pelajaran yang Diampu 📚</label>
-                <textarea id="settings-extra" class="form-control" rows="3" placeholder="Contoh: Algoritma, Web Development, UI/UX">${currentUser.extra || ''}</textarea>
-            </div>
-        `;
+    if (extraFields) {
+        extraFields.innerHTML = getRoleFieldMarkup(userRole, currentUser);
     }
 
     modal.classList.remove('hidden');
 };
 
 async function saveAccountSettings() {
-    const name = document.getElementById('settings-name').value;
+    const name = document.getElementById('settings-name').value.trim();
     const photoUrl = document.getElementById('settings-photo-url').value;
-    const bio = document.getElementById('settings-bio').value;
+    const bio = document.getElementById('settings-bio').value.trim();
     const extraInput = document.getElementById('settings-extra');
-    const extra = extraInput ? extraInput.value : null;
-    
+    const extra = extraInput ? extraInput.value.trim() : null;
+
     let currentUser = getCurrentUserProfile();
-    
+
     try {
         const { error } = await window.B2B_Supabase.client
             .from('profiles')
             .update({
-                name: name,
+                name,
                 photo_url: photoUrl,
-                bio: bio,
-                extra: extra
+                bio,
+                extra
             })
             .eq('id', currentUser.id);
 
         if (error) throw error;
 
-        // Update local session
-        currentUser.name = name;
-        currentUser.photoUrl = photoUrl;
-        currentUser.bio = bio;
-        if (extra !== null) currentUser.extra = extra;
-        localStorage.setItem('b2b_currentUser', JSON.stringify(currentUser));
-        
-        if (window.showToast) showToast("Profil berhasil diperbarui!", "success");
+        currentUser = {
+            ...currentUser,
+            name,
+            photoUrl,
+            photo_url: photoUrl,
+            bio,
+            extra: extra !== null ? extra : currentUser.extra
+        };
+
+        persistProfileLocally(currentUser);
+
+        if (window.showToast) showToast('Profil berhasil diperbarui!', 'success');
         window.closeModal('settings-modal');
-        setTimeout(() => location.reload(), 1000);
+        if (window.updateProfileUI) window.updateProfileUI();
     } catch (err) {
-        if (window.showToast) showToast(err.message, "error");
+        if (window.showToast) showToast(err.message, 'error');
     }
 }
 
-/**
- * Update Profile UI in Header
- */
 window.updateProfileUI = function() {
     const currentUser = getCurrentUserProfile();
     const role = currentUser.role || 'student';
-    
+
     const nameEl = document.getElementById(`${role}-display-name`);
     const avatarEl = document.getElementById(`${role}-avatar`);
     const avatarMiniEl = document.getElementById(`${role}-avatar-mini`);
-    
+
     if (nameEl) nameEl.textContent = currentUser.name || 'User';
 
     const applyAvatar = (el) => {
         if (!el) return;
+
         if (currentUser.photoUrl) {
             el.innerHTML = `<img src="${currentUser.photoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
             el.style.padding = '0';
         } else {
-            const initials = currentUser.name 
-                ? currentUser.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() 
+            const initials = currentUser.name
+                ? currentUser.name.split(' ').map((word) => word[0]).join('').substring(0, 2).toUpperCase()
                 : 'U';
             el.textContent = initials;
             el.style.padding = '';
@@ -262,15 +353,15 @@ window.updateProfileUI = function() {
 
     const bioDisplay = document.getElementById(`${role}-bio-display`);
     const extraDisplay = document.getElementById(`${role}-extra-display`);
-    
+
     if (bioDisplay) bioDisplay.textContent = currentUser.bio || 'Belum ada bio singkat.';
     if (extraDisplay) {
-        if (role === 'student') {
+        if (role === 'student' || role === 'admin') {
             extraDisplay.textContent = currentUser.extra || 'Belum diatur';
         } else if (role === 'teacher') {
-            const subjects = currentUser.extra ? currentUser.extra.split(',').map(s => s.trim()).filter(s => s) : [];
+            const subjects = currentUser.extra ? currentUser.extra.split(',').map((subject) => subject.trim()).filter(Boolean) : [];
             if (subjects.length > 0) {
-                extraDisplay.innerHTML = subjects.map(s => `<span class="badge badge-outline" style="margin-right:5px; margin-bottom:5px;">${s}</span>`).join('');
+                extraDisplay.innerHTML = subjects.map((subject) => `<span class="badge badge-outline" style="margin-right:5px; margin-bottom:5px;">${subject}</span>`).join('');
             } else {
                 extraDisplay.textContent = 'Belum ada mata pelajaran.';
             }
@@ -280,18 +371,37 @@ window.updateProfileUI = function() {
     const greetingEl = document.getElementById('student-greeting');
     if (greetingEl && currentUser.name) {
         const firstName = currentUser.name.split(' ')[0];
-        greetingEl.innerHTML = `Halo, ${firstName}! 👋`;
+        greetingEl.innerHTML = `Halo, ${firstName}! ðŸ‘‹`;
     }
 };
 
-/**
- * Initialize Global Supabase Features (Realtime Broadcast)
- */
 async function initGlobalFeatures() {
     if (window.B2B_Supabase && window.B2B_Supabase.setupRealtimeBroadcast) {
         window.B2B_Supabase.setupRealtimeBroadcast((payload) => {
             if (window.showToast) {
-                showToast(`📢 PENGUMUMAN: ${payload.new.content}`, 'info');
+                showToast(`ðŸ“¢ PENGUMUMAN: ${payload.new.content}`, 'info');
+            }
+        });
+    }
+}
+
+const baseUpdateProfileUI = window.updateProfileUI;
+window.updateProfileUI = function() {
+    baseUpdateProfileUI();
+
+    const currentUser = getCurrentUserProfile();
+    const greetingEl = document.getElementById('student-greeting');
+    if (greetingEl && currentUser.name) {
+        const firstName = currentUser.name.split(' ')[0];
+        greetingEl.textContent = `Halo, ${firstName}!`;
+    }
+};
+
+async function initGlobalFeatures() {
+    if (window.B2B_Supabase && window.B2B_Supabase.setupRealtimeBroadcast) {
+        window.B2B_Supabase.setupRealtimeBroadcast((payload) => {
+            if (window.showToast) {
+                showToast(`Pengumuman: ${payload.new.content}`, 'info');
             }
         });
     }
@@ -302,22 +412,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.updateProfileUI) window.updateProfileUI();
 });
 
-// Tutup dropdown jika klik luar
 document.addEventListener('click', function(event) {
     const isDropdownTrigger = event.target.closest('.user-profile-trigger') || event.target.closest('.settings-gear-btn');
     const isDropdownMenu = event.target.closest('.dropdown-menu') || event.target.closest('.notif-dropdown');
 
     if (!isDropdownTrigger && !isDropdownMenu) {
         const dropdowns = document.querySelectorAll('.dropdown-menu, .notif-dropdown');
-        dropdowns.forEach(dropdown => {
+        dropdowns.forEach((dropdown) => {
             dropdown.classList.add('hidden');
         });
     }
 });
 
-/**
- * Utility: Download JSON
- */
 window.downloadJSON = function(data, filename) {
     const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -330,10 +436,7 @@ window.downloadJSON = function(data, filename) {
     URL.revokeObjectURL(url);
 };
 
-/**
- * Utility: Print Report
- */
-window.printReport = function(contentHtml, title = "Laporan Bites2Bytes") {
+window.printReport = function(contentHtml, title = 'Laporan Bites2Bytes') {
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html>

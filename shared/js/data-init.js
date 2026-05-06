@@ -8,13 +8,6 @@ if (!localStorage.getItem('b2b_cleaned_v2')) {
     if (!localStorage.getItem('b2b_demo_session')) {
         localStorage.removeItem('b2b_currentUser');
     }
-    let usersData = JSON.parse(localStorage.getItem('b2b_users') || '[]');
-    usersData = usersData.map(u => {
-        delete u.photoUrl;
-        delete u.bio;
-        return u;
-    });
-    localStorage.setItem('b2b_users', JSON.stringify(usersData));
     localStorage.setItem('b2b_cleaned_v2', 'true');
     console.log("Data profil lama berhasil dibersihkan.");
 }
