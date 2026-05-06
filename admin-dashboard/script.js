@@ -294,12 +294,16 @@ document.addEventListener('DOMContentLoaded', () => {
         addUserForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const originalId = document.getElementById('edit-user-original-id').value;
-            const wa_number = document.getElementById('new-user-id').value;
-            const name = document.getElementById('new-user-name').value;
+            const wa_number = document.getElementById('new-user-id').value.trim();
+            const name = document.getElementById('new-user-name').value.trim();
             const role = document.getElementById('new-user-role').value;
-            const mpin = document.getElementById('new-user-mpin').value;
+            const mpin = document.getElementById('new-user-mpin').value.trim();
 
             try {
+                if (!/^\d{6}$/.test(mpin)) {
+                    throw new Error('MPIN harus 6 digit angka.');
+                }
+
                 if (originalId) {
                     // EDIT MODE
                     const { error } = await window.B2B_Supabase.client
@@ -309,10 +313,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (error) throw error;
                     showToast(`Data ${name} berhasil diperbarui!`, 'success');
                 } else {
-                    // ADD MODE - Note: In a real app, you'd use Supabase Auth Admin API 
-                    // to create a user. For this demo/migration, we assume manual Auth setup.
-                    showToast("Harap gunakan Supabase Auth Dashboard untuk menambah user baru secara aman.", "info");
-                    return;
+                    const currentAdmin = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+                    const adminLoginId = currentAdmin.wa_number || currentAdmin.id || 'admin';
+                    const adminMpin = currentAdmin.mpin || '123456';
+                    const email = `${wa_number}@bites2bytes.com`;
+
+                    const { data: existingUsers, error: existingError } = await window.B2B_Supabase.client
+                        .from('profiles')
+                        .select('*')
+                        .eq('wa_number', wa_number);
+
+                    if (existingError) throw existingError;
+                    if (existingUsers && existingUsers.length > 0) {
+                        throw new Error('ID / Nomor WA tersebut sudah terdaftar.');
+                    }
+
+                    const { data: signUpData, error: signUpError } = await window.B2B_Supabase.client.auth.signUp({
+                        email,
+                        password: mpin,
+                        options: {
+                            data: {
+                                name,
+                                role,
+                                wa_number
+                            }
+                        }
+                    });
+
+                    if (signUpError) throw signUpError;
+
+                    if (signUpData?.user?.id) {
+                        const { error: profileUpdateError } = await window.B2B_Supabase.client
+                            .from('profiles')
+                            .update({ name, role, mpin, wa_number })
+                            .eq('id', signUpData.user.id);
+
+                        if (profileUpdateError && profileUpdateError.code !== 'PGRST116') {
+                            console.warn('Profile sync warning:', profileUpdateError);
+                        }
+                    }
+
+                    const restoreResult = await window.B2B_Supabase.client.auth.signInWithPassword({
+                        email: `${adminLoginId}@bites2bytes.com`,
+                        password: adminMpin
+                    });
+
+                    if (restoreResult.error) {
+                        console.warn('Admin session restore warning:', restoreResult.error);
+                    }
+
+                    showToast(`Akun ${role === 'student' ? 'siswa' : 'guru'} untuk ${name} berhasil dibuat!`, 'success');
                 }
 
                 closeModal('user-modal');

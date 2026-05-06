@@ -668,19 +668,41 @@ function createCompatibleClient(realClient) {
                     if (!remoteResult.error) return remoteResult;
                 }
 
-                const username = (email || '').split('@')[0] || 'admin';
-                const currentAdmin = getAdminProfile();
-                const nextAdmin = {
-                    ...currentAdmin,
-                    id: username,
-                    wa_number: options?.data?.wa_number || username,
-                    name: options?.data?.name || currentAdmin.name,
-                    role: options?.data?.role || 'admin',
-                    mpin: password || currentAdmin.mpin
+                const username = (email || '').split('@')[0] || 'user';
+                const role = options?.data?.role || 'student';
+                const profileId = options?.data?.wa_number || username;
+                const nextProfile = {
+                    id: profileId,
+                    wa_number: profileId,
+                    name: options?.data?.name || 'User Baru',
+                    role,
+                    extra: options?.data?.extra || '',
+                    mpin: password || '123456',
+                    honorarium: role === 'teacher' ? 75000 : 0,
+                    sessions_completed: 0,
+                    created_at: new Date().toISOString(),
+                    bio: '',
+                    photo_url: ''
                 };
 
-                saveAdminProfile(nextAdmin);
-                const user = buildDemoUser(nextAdmin);
+                const profiles = getProfiles().filter((profile) => profile.id !== nextProfile.id && profile.wa_number !== nextProfile.wa_number);
+                profiles.push(nextProfile);
+                saveProfiles(profiles);
+
+                const progressRows = getProgressRows();
+                if (role === 'student' && !progressRows.find((row) => row.student_id === nextProfile.id)) {
+                    progressRows.push({
+                        student_id: nextProfile.id,
+                        completed_topics: [],
+                        quiz_scores: {},
+                        badges: [],
+                        certificates: [],
+                        xp: 0
+                    });
+                    saveProgressRows(progressRows);
+                }
+
+                const user = buildDemoUser(nextProfile);
                 return { data: { user, session: null }, error: null };
             },
 
