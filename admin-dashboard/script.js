@@ -395,56 +395,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addModuleForm = document.getElementById('add-module-form');
     if (addModuleForm) {
-        addModuleForm.addEventListener('submit', (e) => {
+        addModuleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const editId = document.getElementById('edit-module-id').value;
-            const title = document.getElementById('new-module-title').value;
-            const summary = document.getElementById('new-module-summary').value;
-            const teacher = document.getElementById('new-module-teacher').value;
-
-            let modules = JSON.parse(localStorage.getItem('b2b_modules') || '[]');
+            const title = document.getElementById('new-module-title').value.trim();
+            const summary = document.getElementById('new-module-summary').value.trim();
+            const teacher = document.getElementById('new-module-teacher').value.trim();
             
-            if (editId) {
-                // EDIT MODE
-                const idx = modules.findIndex(m => m.id === editId);
-                if (idx !== -1) {
-                    modules[idx] = { ...modules[idx], title, summary, teacherId: teacher };
-                    localStorage.setItem('b2b_modules', JSON.stringify(modules));
-                    showToast(`Modul "${title}" diperbarui!`, 'success');
-                }
-            } else {
-                // ADD MODE
-                modules.push({
-                    id: 'mod-' + Date.now(),
-                    title,
-                    summary,
-                    teacherId: teacher,
-                    topics: []
-                });
-                localStorage.setItem('b2b_modules', JSON.stringify(modules));
-                showToast(`Modul "${title}" berhasil diterbitkan!`, 'success');
-            }
+            try {
+                if (editId) {
+                    const { error } = await window.B2B_Supabase.client
+                        .from('modules')
+                        .update({
+                            title,
+                            summary,
+                            teacher_id: teacher || null
+                        })
+                        .eq('id', editId);
 
-            closeModal('module-modal');
-            addModuleForm.reset();
-            renderCurriculum();
+                    if (error) throw error;
+                    showToast(`Modul "${title}" diperbarui!`, 'success');
+                } else {
+                    const { error } = await window.B2B_Supabase.client
+                        .from('modules')
+                        .insert({
+                            id: 'mod-' + Date.now(),
+                            title,
+                            summary,
+                            teacher_id: teacher || null,
+                            topics: [],
+                            exam: []
+                        });
+
+                    if (error) throw error;
+                    showToast(`Modul "${title}" berhasil diterbitkan!`, 'success');
+                }
+
+                closeModal('module-modal');
+                addModuleForm.reset();
+                populateEnrollmentDropdowns();
+                renderCurriculum();
+            } catch (err) {
+                console.error('Module save error:', err);
+                showToast(err.message || 'Modul gagal disimpan.', 'error');
+            }
         });
     }
 
-    window.editModule = (id) => {
-        const modules = JSON.parse(localStorage.getItem('b2b_modules') || '[]');
-        const mod = modules.find(m => m.id === id);
-        if (!mod) return;
+    window.editModule = async (id) => {
+        try {
+            const { data: mod, error } = await window.B2B_Supabase.client
+                .from('modules')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            if (!mod) return;
 
         document.getElementById('module-modal-title').textContent = 'Edit Modul ✏️';
         document.getElementById('module-modal-submit').textContent = 'Update Modul';
         document.getElementById('edit-module-id').value = mod.id;
         
         document.getElementById('new-module-title').value = mod.title;
-        document.getElementById('new-module-summary').value = mod.summary;
-        document.getElementById('new-module-teacher').value = mod.teacherId || '';
+        document.getElementById('new-module-summary').value = mod.summary || '';
+        document.getElementById('new-module-teacher').value = mod.teacher_id || mod.teacherId || '';
 
         document.getElementById('module-modal').classList.remove('hidden');
+        } catch (err) {
+            console.error('Module edit error:', err);
+            showToast(err.message || 'Modul tidak dapat dibuka.', 'error');
+        }
     };
 
     // ======================================================
@@ -601,20 +622,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Hapus enrollment */
     window.deleteEnrollment = async (id) => {
-        if (confirm('Hapus enrollment ini? Siswa tidak akan lagi terassign ke guru tersebut.')) {
-            try {
-                const { error } = await window.B2B_Supabase.client
-                    .from('enrollments')
-                    .delete()
-                    .eq('id', id);
+        const confirmed = await window.showConfirmDialog({
+            title: 'Hapus Enrollment',
+            message: 'Siswa tidak akan lagi terhubung ke guru dan modul pada enrollment ini.',
+            confirmText: 'Hapus Enrollment',
+            cancelText: 'Batal',
+            danger: true
+        });
 
-                if (error) throw error;
-                showToast("Enrollment berhasil dihapus.", "success");
-                renderEnrollmentTable();
-                updateDashboardStats();
-            } catch (err) {
-                showToast(err.message, "error");
-            }
+        if (!confirmed) return;
+
+        try {
+            const { error } = await window.B2B_Supabase.client
+                .from('enrollments')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            showToast("Enrollment berhasil dihapus.", "success");
+            renderEnrollmentTable();
+            updateDashboardStats();
+        } catch (err) {
+            showToast(err.message, "error");
         }
     };
 
@@ -709,12 +738,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p class="text-xs text-muted">Modul ID: ${mod.id}</p>
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-sm btn-outline" onclick="editModule('${mod.id}')">Edit</button>
-                            <button class="btn btn-sm btn-outline text-danger" style="color: var(--danger-color);" onclick="deleteModule('${mod.id}')">Hapus</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="editModule('${mod.id}')">Edit</button>
+                            <button type="button" class="btn btn-sm btn-outline text-danger" style="color: var(--danger-color);" onclick="deleteModule('${mod.id}')">Hapus</button>
                         </div>
                     </div>
                     <div class="mt-15 p-10 bg-darker rounded text-sm">
-                        <strong>Keterangan:</strong> Modul pembelajaran Bites2Bytes.
+                        <strong>Keterangan:</strong> ${mod.summary || 'Modul pembelajaran Bites2Bytes.'}
                     </div>
                 </div>
             `).join('');
@@ -723,13 +752,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.deleteModule = (id) => {
-        if (confirm('Apakah Anda yakin ingin menghapus modul ini? Seluruh enrollment terkait mungkin akan bermasalah.')) {
-            let modules = JSON.parse(localStorage.getItem('b2b_modules') || '[]');
-            modules = modules.filter(m => m.id !== id);
-            localStorage.setItem('b2b_modules', JSON.stringify(modules));
+    window.deleteModule = async (id) => {
+        const confirmed = await window.showConfirmDialog({
+            title: 'Hapus Modul',
+            message: 'Modul ini akan dihapus. Enrollment lama yang masih menunjuk ke modul ini bisa terdampak.',
+            confirmText: 'Hapus Modul',
+            cancelText: 'Batal',
+            danger: true
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const { error } = await window.B2B_Supabase.client
+                .from('modules')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
             showToast("Modul berhasil dihapus.", "success");
+            populateEnrollmentDropdowns();
             renderCurriculum();
+        } catch (err) {
+            console.error('Module delete error:', err);
+            showToast(err.message || 'Modul gagal dihapus.', 'error');
         }
     };
 
@@ -777,16 +823,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.deleteUser = (id) => {
-        if(confirm('Hapus pengguna ini? Seluruh enrollment terkait akan tetap ada.')) {
-            let users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
-            users = users.filter(u => u.id !== id);
-            localStorage.setItem('b2b_users', JSON.stringify(users));
-            showToast("Pengguna berhasil dihapus", "success");
-            renderUserTable('student', 'students-table-body');
-            renderUserTable('teacher', 'teachers-table-body');
-            updateDashboardStats();
-        }
+    window.deleteUser = async (id) => {
+        const confirmed = await window.showConfirmDialog({
+            title: 'Hapus Pengguna',
+            message: 'Pengguna ini akan dihapus dari daftar. Enrollment lama akan tetap tersimpan.',
+            confirmText: 'Hapus Pengguna',
+            cancelText: 'Batal',
+            danger: true
+        });
+
+        if (!confirmed) return;
+
+        let users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+        users = users.filter(u => u.id !== id);
+        localStorage.setItem('b2b_users', JSON.stringify(users));
+        showToast("Pengguna berhasil dihapus", "success");
+        renderUserTable('student', 'students-table-body');
+        renderUserTable('teacher', 'teachers-table-body');
+        updateDashboardStats();
     };
 
     // ======================================================
@@ -890,17 +944,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.bulkAction = (type) => {
+    window.bulkAction = async (type) => {
         const selected = document.querySelectorAll('.user-checkbox:checked');
         const ids = Array.from(selected).map(cb => cb.getAttribute('data-id'));
         
         if (type === 'delete') {
-            if (confirm(`Apakah Anda yakin ingin menghapus ${ids.length} pengguna terpilih? Tindakan ini tidak dapat dibatalkan.`)) {
-                let users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
-                users = users.filter(u => !ids.includes(u.id));
-                localStorage.setItem('b2b_users', JSON.stringify(users));
-                showToast(`${ids.length} pengguna berhasil dihapus.`, "success");
-            }
+            const confirmed = await window.showConfirmDialog({
+                title: 'Hapus Pengguna Terpilih',
+                message: `${ids.length} pengguna terpilih akan dihapus dari daftar ini.`,
+                confirmText: 'Hapus Semua',
+                cancelText: 'Batal',
+                danger: true
+            });
+
+            if (!confirmed) return;
+
+            let users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+            users = users.filter(u => !ids.includes(u.id));
+            localStorage.setItem('b2b_users', JSON.stringify(users));
+            showToast(`${ids.length} pengguna berhasil dihapus.`, "success");
         } else if (type === 'deactivate') {
             // Simulasi deaktifasi dengan mengubah status di extra
             let users = JSON.parse(localStorage.getItem('b2b_users') || '[]');

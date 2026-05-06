@@ -115,19 +115,100 @@ window.closeModal = function(modalId) {
     if (modal) modal.classList.add('hidden');
 };
 
-window.handleLogout = async function() {
-    if (confirm('Apakah Anda yakin ingin keluar?')) {
-        try {
-            if (window.B2B_Supabase && window.B2B_Supabase.client) {
-                await window.B2B_Supabase.client.auth.signOut();
-            }
-            sessionStorage.clear();
-            localStorage.removeItem('b2b_currentUser');
-            window.location.href = '/login';
-        } catch (err) {
-            console.error('Logout error:', err);
-            window.location.href = '/login';
+window.showConfirmDialog = function({
+    title = 'Konfirmasi',
+    message = 'Apakah Anda yakin ingin melanjutkan?',
+    confirmText = 'Lanjutkan',
+    cancelText = 'Batal',
+    danger = false
+} = {}) {
+    return new Promise((resolve) => {
+        let modal = document.getElementById('global-confirm-modal');
+
+        if (!modal) {
+            const modalHTML = `
+            <div id="global-confirm-modal" class="modal hidden">
+                <div class="modal-content glass" style="max-width:460px; width:calc(100% - 32px);">
+                    <div class="flex-between mb-15">
+                        <h2 id="confirm-modal-title" class="fw-bold">Konfirmasi</h2>
+                        <button type="button" class="icon-btn" data-confirm-close>X</button>
+                    </div>
+                    <p id="confirm-modal-message" class="text-sm text-muted" style="line-height:1.6; margin-bottom:20px;"></p>
+                    <div class="flex gap-2" style="justify-content:flex-end;">
+                        <button type="button" id="confirm-modal-cancel" class="btn btn-sm btn-outline">Batal</button>
+                        <button type="button" id="confirm-modal-submit" class="btn btn-sm btn-primary">Lanjutkan</button>
+                    </div>
+                </div>
+            </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            modal = document.getElementById('global-confirm-modal');
         }
+
+        const titleEl = document.getElementById('confirm-modal-title');
+        const messageEl = document.getElementById('confirm-modal-message');
+        const cancelBtn = document.getElementById('confirm-modal-cancel');
+        const submitBtn = document.getElementById('confirm-modal-submit');
+        const closeBtn = modal.querySelector('[data-confirm-close]');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        submitBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+        submitBtn.style.background = danger ? 'var(--danger-color)' : '';
+        submitBtn.style.borderColor = danger ? 'var(--danger-color)' : '';
+        submitBtn.style.color = '#fff';
+
+        const cleanup = (result) => {
+            modal.classList.add('hidden');
+            cancelBtn.removeEventListener('click', onCancel);
+            submitBtn.removeEventListener('click', onConfirm);
+            closeBtn.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKeyDown);
+            resolve(result);
+        };
+
+        const onCancel = () => cleanup(false);
+        const onConfirm = () => cleanup(true);
+        const onBackdrop = (event) => {
+            if (event.target === modal) cleanup(false);
+        };
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') cleanup(false);
+        };
+
+        cancelBtn.addEventListener('click', onCancel);
+        submitBtn.addEventListener('click', onConfirm);
+        closeBtn.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.classList.remove('hidden');
+    });
+};
+
+window.handleLogout = async function() {
+    const confirmed = await window.showConfirmDialog({
+        title: 'Keluar dari Akun',
+        message: 'Sesi saat ini akan diakhiri dan Anda akan kembali ke halaman login.',
+        confirmText: 'Keluar',
+        cancelText: 'Tetap di sini',
+        danger: true
+    });
+
+    if (!confirmed) return;
+
+    try {
+        if (window.B2B_Supabase && window.B2B_Supabase.client) {
+            await window.B2B_Supabase.client.auth.signOut();
+        }
+        sessionStorage.clear();
+        localStorage.removeItem('b2b_currentUser');
+        window.location.href = '/login';
+    } catch (err) {
+        console.error('Logout error:', err);
+        window.location.href = '/login';
     }
 };
 
