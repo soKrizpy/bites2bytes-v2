@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "name": "bites2bytes",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/landing-page/index.html" },
+    { "source": "/login", "destination": "/login/index.html" },
+    { "source": "/admin", "destination": "/admin-dashboard/index.html" },
+    { "source": "/teacher", "destination": "/teacher-dashboard/index.html" },
+    { "source": "/student", "destination": "/student-dashboard/index.html" }
+  ]
+}
+

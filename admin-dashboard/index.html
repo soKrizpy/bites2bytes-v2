@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Admin - Bites2Bytes</title>
+    <!-- Rujukan ke berkas global (Shared) -->
+    <link rel="stylesheet" href="../shared/css/theme.css">
+    <!-- CSS Khusus Admin Dashboard -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon bg-danger-gradient">🛡️</div>
+                    <span class="logo-text">Admin Center</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-target="dashboard-tab">
+                        <span class="nav-icon">📈</span>
+                        <span class="nav-title">Ringkasan Sistem</span>
+                    </li>
+                    <li class="nav-item" data-target="users-management-tab">
+                        <span class="nav-icon">👥</span>
+                        <span class="nav-title">Manajemen Pengguna</span>
+                    </li>
+                    <li class="nav-item" data-target="curriculum-tab">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-title">Kurikulum & Modul</span>
+                    </li>
+                    <li class="nav-item" data-target="broadcast-tab">
+                        <span class="nav-icon">📢</span>
+                        <span class="nav-title">Sistem Broadcast</span>
+                    </li>
+                    <li class="nav-item" data-target="finance-tab">
+                        <span class="nav-icon">💰</span>
+                        <span class="nav-title">Analitik Keuangan</span>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header Atas -->
+            <header class="topbar animate-fade-up">
+                <div class="flex items-center gap-3">
+                    <button id="mobile-menu-btn" class="icon-btn mobile-only hidden" aria-label="Menu">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <div>
+                        <h1 class="fw-bold">Pusat Kendali <span class="text-gradient">Bites2Bytes</span></h1>
+                        <p class="text-muted text-sm hidden-xs">Semua sistem berfungsi normal. Mengamankan kredensial dan aliran kas.</p>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <!-- Notification Center -->
+                    <div class="notification-wrapper">
+                        <button class="icon-btn" id="notif-toggle" aria-label="Notifications">
+                            <span class="nav-icon">🔔</span>
+                            <span class="notif-badge" id="notif-count">0</span>
+                        </button>
+                        <div class="notif-dropdown glass hidden" id="notif-dropdown">
+                            <div class="notif-header">
+                                <h4 class="fw-bold text-sm">Notifikasi</h4>
+                                <button class="text-xs text-primary btn-link" id="mark-all-read">Tandai semua dibaca</button>
+                            </div>
+                            <div class="notif-list" id="notif-list">
+                                <div class="text-center p-20 text-muted text-xs">Tidak ada notifikasi baru</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dropdown Profil -->
+                    <div class="dropdown-container">
+                        <div class="user-profile-trigger flex items-center gap-2" style="cursor: pointer;" onclick="toggleDropdown('settings-dropdown-menu')">
+                            <div class="user-info">
+                                <span class="user-name" id="admin-display-name">Super Admin</span>
+                                <span class="badge badge-danger">Level 5</span>
+                            </div>
+                            <div class="avatar bg-danger-gradient" id="admin-avatar">SA</div>
+                        </div>
+                        <div class="dropdown-menu glass hidden" id="settings-dropdown-menu">
+                            <a href="#" class="dropdown-item" onclick="openSettingsModal()">⚙️ Pengaturan Akun</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item text-danger" onclick="handleLogout()">🚪 Keluar</a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- TABS CONTAINER -->
+            <div class="tab-content-container">
+                
+                <!-- TAB 1: IKHTISAR SISTEM -->
+                <section id="dashboard-tab" class="tab-pane active fade-in">
+                    <div class="bento-dashboard">
+                        <!-- Box Lebar Total Pengguna -->
+                        <div class="bento-box glass wide-box flex-row flex-between animate-fade-up stagger-1">
+                            <div>
+                                <h3 class="text-muted tracking-wide text-sm mb-10 uppercase">Total Entitas Terdaftar</h3>
+                                <div class="stat-jumbo" id="stat-total">0 <span class="text-sm text-success fw-normal" id="stat-new-this-month">memuat...</span></div>
+                            </div>
+                            <div class="stat-chart-placeholder">
+                                <div class="bar-mini" style="height: 40%"></div>
+                                <div class="bar-mini" style="height: 60%"></div>
+                                <div class="bar-mini" style="height: 85%"></div>
+                                <div class="bar-mini primary" style="height: 100%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Box Stat Kecil -->
+                        <div class="bento-box glass animate-fade-up stagger-2">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Siswa Aktif</h3>
+                            <div class="stat-large mt-10" id="stat-students">0</div>
+                        </div>
+                        <div class="bento-box glass animate-fade-up stagger-3">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Mentor (Guru)</h3>
+                            <div class="stat-large mt-10" id="stat-teachers">0</div>
+                        </div>
+                        <div class="bento-box glass animate-fade-up stagger-4">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Enrollment Aktif</h3>
+                            <div class="stat-large mt-10" id="stat-enrollments">0</div>
+                        </div>
+                    </div>
+
+
+                    <!-- Performance Metrik (Student & Teacher) -->
+                    <div class="bento-dashboard" style="margin-top: 20px;">
+                        <div class="bento-box glass animate-fade-up stagger-5" style="grid-column: span 2;">
+                            <h3 class="fw-bold mb-15">🏆 Student Leaderboard (Top 5)</h3>
+                            <div class="data-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Peringkat</th>
+                                            <th>Siswa</th>
+                                            <th>Total XP</th>
+                                            <th>Topik Selesai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-leaderboard-body">
+                                        <tr><td colspan="4" class="text-center text-muted">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bento-box glass animate-fade-up stagger-6">
+                            <h3 class="fw-bold mb-15">👨‍🏫 Teacher Performance</h3>
+                            <div class="data-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Guru</th>
+                                            <th>Sesi Logged</th>
+                                            <th>Rata-rata Penilaian</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-teacher-performance-body">
+                                        <tr><td colspan="3" class="text-center text-muted">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB: MANAJEMEN PENGGUNA -->
+                <section id="users-management-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20 flex-between">
+                        <div>
+                            <h2 class="fw-bold">Manajemen Pengguna 👥</h2>
+                            <p class="text-muted text-sm">Kelola seluruh data siswa, guru, dan hubungan belajar (enrollment) terpusat.</p>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tabs Navigation -->
+                    <div class="sub-tabs-container mb-20">
+                        <button class="btn btn-primary sub-tab-btn active" data-subtarget="sub-students">Siswa</button>
+                        <button class="btn btn-outline sub-tab-btn" data-subtarget="sub-teachers">Instruktur</button>
+                        <button class="btn btn-outline sub-tab-btn" data-subtarget="sub-enrollment">Enrollment</button>
+                    </div>
+
+                    <!-- Sub-Tab: Siswa -->
+                    <div id="sub-students" class="sub-tab-pane active fade-in">
+                        <div class="flex-between mb-15">
+                            <div class="search-box">
+                                <input type="text" id="search-students" class="form-control text-sm" placeholder="Cari nama/WA...">
+                            </div>
+                            <button class="btn btn-primary" onclick="openModal('user-modal')">+ Tambah Siswa</button>
+                        </div>
+                        <div class="bento-box glass no-padding table-panel">
+                            <div class="data-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;"><input type="checkbox" id="check-all-students" onclick="toggleSelectAll('student')"></th>
+                                            <th>ID / WA</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>Status Paket</th>
+                                            <th>MPIN Access</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="students-table-body">
+                                        <!-- Diisi via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-Tab: Guru -->
+                    <div id="sub-teachers" class="sub-tab-pane hidden fade-in">
+                        <div class="flex-between mb-15">
+                            <div class="search-box">
+                                <input type="text" id="search-teachers" class="form-control text-sm" placeholder="Cari nama/WA...">
+                            </div>
+                            <button class="btn btn-primary" onclick="openModal('user-modal')">+ Tambah Guru</button>
+                        </div>
+                        <div class="bento-box glass no-padding table-panel">
+                            <div class="data-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;"><input type="checkbox" id="check-all-teachers" onclick="toggleSelectAll('teacher')"></th>
+                                            <th>ID / WA</th>
+                                            <th>Nama Lengkap</th>
+                                            <th>Spesialisasi</th>
+                                            <th>MPIN Access</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="teachers-table-body">
+                                        <!-- Diisi via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                <!-- Akhir Manajemen Pengguna Bagian 1 -->
+                    <!-- Sub-Tab: Enrollment -->
+                    <div id="sub-enrollment" class="sub-tab-pane hidden fade-in">
+                        <div class="flex-end mb-15">
+                            <button class="btn btn-primary" onclick="openModal('enrollment-modal')">+ Assign Siswa Baru</button>
+                        </div>
+                        <div class="bento-box glass no-padding table-panel">
+                            <div class="data-table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Siswa</th>
+                                            <th>Guru Pengampu</th>
+                                            <th>Modul</th>
+                                            <th>Tanggal Mulai</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="enrollment-table-body">
+                                        <!-- Diisi via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Bulk Action Bar (Hidden by default) -->
+                    <div id="bulk-action-bar" class="bulk-action-bar glass hidden animate-fade-up">
+                        <span id="selected-count" class="text-sm fw-bold">0 dipilih</span>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-outline" onclick="bulkAction('deactivate')">⏸ Deactivate</button>
+                            <button class="btn btn-sm btn-primary" style="background: var(--danger-color);" onclick="bulkAction('delete')">🗑️ Hapus Masal</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: KURIKULUM & MODUL (CRUD) -->
+                <section id="curriculum-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20 flex-between">
+                        <div>
+                            <h2 class="fw-bold">Manajemen Kurikulum 📚</h2>
+                            <p class="text-muted text-sm">Kelola modul, topik, dan kuis untuk seluruh jalur pembelajaran.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('module-modal')">+ Modul Baru</button>
+                    </div>
+                    
+                    <div id="modules-list" class="flex-column gap-3">
+                        <!-- Akan diisi oleh JS -->
+                        <div class="text-center p-8 text-muted">Memuat data kurikulum...</div>
+                    </div>
+                </section>
+
+
+                <!-- TAB 4: SISTEM BROADCAST -->
+                <section id="broadcast-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20">
+                        <h2 class="fw-bold">Broadcast Pengumuman 📢</h2>
+                        <p class="text-muted text-sm">Kirim pesan yang akan muncul seketika di layar seluruh Guru dan Siswa yang sedang aktif.</p>
+                    </div>
+
+                    <div style="max-width: 1000px;">
+                        <!-- Input Card -->
+                        <div class="bento-box glass no-padding">
+                            <div style="padding: 24px;">
+                                <h3 class="text-sm fw-bold uppercase tracking-wider mb-20" style="color: var(--primary-color);">Konfigurasi Banner</h3>
+                                
+                                <div class="form-group mb-20">
+                                    <label class="text-xs text-muted mb-5 block" style="display: block; margin-bottom: 8px;">LINK GAMBAR (POSTER)</label>
+                                    <input type="text" id="broadcast-image" class="form-control" placeholder="https://source.unsplash.com/random/800x400/?education">
+                                </div>
+
+                                <div class="form-group mb-20">
+                                    <label class="text-xs text-muted mb-5 block" style="display: block; margin-bottom: 8px;">TARGET PENERIMA</label>
+                                    <select id="broadcast-target" class="form-control" style="padding: 10px;">
+                                        <option value="all">Semua (Guru & Siswa)</option>
+                                        <option value="student">Hanya Siswa</option>
+                                        <option value="teacher">Hanya Guru</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group mb-20">
+                                    <label class="text-xs text-muted mb-5 block" style="display: block; margin-bottom: 8px;">PESAN UTAMA</label>
+                                    <textarea id="broadcast-message" class="form-control" rows="10" placeholder="Contoh: Jadwal Ujian Tengah Semester sudah dirilis. Cek Learning Path Anda!"></textarea>
+                                </div>
+
+                                <button id="send-broadcast-btn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">🚀 Publikasikan Banner</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: FINANCE -->
+                <section id="finance-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20 flex-between">
+                        <div>
+                            <h2 class="fw-bold">Analitik Keuangan 💰</h2>
+                            <p class="text-muted text-sm">Pantau honorarium guru dan ringkasan sesi pertemuan bulan ini.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-sm btn-outline" onclick="exportFinance('json')">📥 Export JSON</button>
+                            <button class="btn btn-sm btn-primary" onclick="exportFinance('pdf')">📄 Print Report (PDF)</button>
+                        </div>
+                    </div>
+
+                    <!-- Finance Stat Cards -->
+                    <div class="bento-dashboard mb-20" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="bento-box glass">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Total Honorarium Bulan Ini</h3>
+                            <div class="stat-large mt-10 text-success" id="finance-total-honorarium">Rp 0</div>
+                            <p class="text-xs text-muted mt-5" id="finance-total-sessions">0 sesi selesai</p>
+                        </div>
+                        <div class="bento-box glass">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Rata-rata per Guru</h3>
+                            <div class="stat-large mt-10" id="finance-avg-honorarium">Rp 0</div>
+                            <p class="text-xs text-muted mt-5">Berdasarkan sesi aktif</p>
+                        </div>
+                        <div class="bento-box glass">
+                            <h3 class="text-muted tracking-wide text-sm uppercase">Tingkat Kehadiran</h3>
+                            <div class="stat-large mt-10" id="finance-attendance-rate">0%</div>
+                            <p class="text-xs text-muted mt-5">Dari seluruh sesi tercatat</p>
+                        </div>
+                    </div>
+
+                    <!-- Payroll Table per Guru -->
+                    <div class="bento-box glass no-padding table-panel">
+                        <div style="padding: 20px 24px 10px;">
+                            <h3 class="fw-bold text-sm">Rincian Honorarium per Guru</h3>
+                        </div>
+                        <div class="data-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Guru</th>
+                                        <th>Total Sesi</th>
+                                        <th>Sesi Hadir</th>
+                                        <th>Honorarium/Sesi</th>
+                                        <th>Total Diterima</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="finance-payroll-body">
+                                    <!-- Diisi via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Session Log -->
+                    <div class="bento-box glass no-padding table-panel mt-20">
+                        <div style="padding: 20px 24px 10px;">
+                            <h3 class="fw-bold text-sm">Log Seluruh Sesi</h3>
+                        </div>
+                        <div class="data-table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Siswa</th>
+                                        <th>Guru</th>
+                                        <th>Topik</th>
+                                        <th>Kehadiran</th>
+                                        <th>Nilai</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="finance-sessions-body">
+                                    <!-- Diisi via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <!-- ADMIN MODALS -->
+    <!-- Modal Tambah Pengguna -->
+    <div id="user-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="flex-between mb-20">
+                <h2 class="fw-bold" id="user-modal-title">Tambah Pengguna Baru 👥</h2>
+                <button class="icon-btn" onclick="closeModal('user-modal')">✕</button>
+            </div>
+            <form id="add-user-form">
+                <input type="hidden" id="edit-user-original-id">
+
+                <div class="form-group mb-15">
+                    <label>ID / Nomor WA</label>
+                    <input type="text" id="new-user-id" class="form-control" placeholder="Contoh: 62812..." required>
+                </div>
+                <div class="form-group mb-15">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="new-user-name" class="form-control" placeholder="Contoh: Ahmad Subardjo" required>
+                </div>
+                <div class="form-group mb-15">
+                    <label>Role / Jabatan</label>
+                    <select id="new-user-role" class="form-control" style="background: var(--surface-color); color: var(--text-color);">
+                        <option value="student">Siswa</option>
+                        <option value="teacher">Guru</option>
+                    </select>
+                </div>
+                <div class="form-group mb-20">
+                    <label>MPIN (6 Digit)</label>
+                    <input type="password" id="new-user-mpin" class="form-control" placeholder="123456" maxlength="6" required>
+                </div>
+                <button type="submit" id="user-modal-submit" class="btn btn-primary btn-block">Simpan Pengguna</button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Enrollment Baru -->
+    <div id="enrollment-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="flex-between mb-20">
+                <h2 class="fw-bold">Assign Siswa ke Guru 🔗</h2>
+                <button class="icon-btn" onclick="closeModal('enrollment-modal')">✕</button>
+            </div>
+            <form id="enrollment-form">
+                <div class="form-group mb-15">
+                    <label>Pilih Siswa</label>
+                    <select id="enr-student" class="form-control" style="background: var(--surface-color); color: var(--text-color);" required>
+                        <option value="">-- Pilih Siswa --</option>
+                    </select>
+                </div>
+                <div class="form-group mb-15">
+                    <label>Pilih Guru Pengampu</label>
+                    <select id="enr-teacher" class="form-control" style="background: var(--surface-color); color: var(--text-color);" required>
+                        <option value="">-- Pilih Guru --</option>
+                    </select>
+                </div>
+                <div class="form-group mb-20">
+                    <label>Pilih Modul</label>
+                    <select id="enr-module" class="form-control" style="background: var(--surface-color); color: var(--text-color);" required>
+                        <option value="">-- Pilih Modul --</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Simpan Enrollment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Modul -->
+    <div id="module-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="flex-between mb-20">
+                <h2 class="fw-bold" id="module-modal-title">Buat Modul Baru 📚</h2>
+                <button class="icon-btn" onclick="closeModal('module-modal')">✕</button>
+            </div>
+            <form id="add-module-form">
+                <input type="hidden" id="edit-module-id">
+
+                <div class="form-group mb-15">
+                    <label>Judul Modul</label>
+                    <input type="text" id="new-module-title" class="form-control" placeholder="Contoh: Dasar Figma" required>
+                </div>
+                <div class="form-group mb-15">
+                    <label>Ringkasan Singkat</label>
+                    <textarea id="new-module-summary" class="form-control" rows="3" placeholder="Jelaskan apa yang akan dipelajari..."></textarea>
+                </div>
+                <div class="form-group mb-20">
+                    <label>ID Guru Pengampu</label>
+                    <input type="text" id="new-module-teacher" class="form-control" placeholder="B2B-T-8812">
+                </div>
+                <button type="submit" id="module-modal-submit" class="btn btn-primary btn-block">Terbitkan Modul</button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../shared/js/supabase-config.js"></script>
+    <!-- Script Global -->
+    <script src="../shared/js/utils.js"></script>
+    <script src="../shared/js/data-init.js"></script>
+    <script src="../shared/js/notifications.js"></script>
+    <script src="../shared/js/theme-toggle.js"></script>
+    <!-- Script Lokal -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guru - Bites2Bytes</title>
+    <!-- Rujukan ke berkas global (Shared) -->
+    <link rel="stylesheet" href="../shared/css/theme.css">
+    <!-- CSS Khusus Teacher Dashboard -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">B2B</div>
+                    <span class="logo-text">Teacher Portal</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-target="dashboard-tab">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-title">Ikhtisar</span>
+                    </li>
+                    <li class="nav-item" data-target="schedule-tab">
+                        <span class="nav-icon">📅</span>
+                        <span class="nav-title">Jadwal & Kalender</span>
+                    </li>
+                    <li class="nav-item" data-target="modules-tab">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-title">Modul Saya</span>
+                    </li>
+                    <li class="nav-item" data-target="students-tab">
+                        <span class="nav-icon">👨‍🎓</span>
+                        <span class="nav-title">Daftar Siswa</span>
+                    </li>
+                    <li class="nav-item" data-target="report-tab">
+                        <span class="nav-icon">✍️</span>
+                        <span class="nav-title">Laporan Sesi</span>
+                    </li>
+                    <li class="nav-item" data-target="earnings-tab">
+                        <span class="nav-icon">💰</span>
+                        <span class="nav-title">Honorarium</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="hidden">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header Atas -->
+            <header class="topbar animate-fade-up">
+                <div>
+                    <h1 class="fw-bold text-gradient" id="teacher-welcome">Selamat Datang 👋</h1>
+                    <p class="text-xs text-muted" id="today-date-badge">Memuat tanggal...</p>
+                </div>
+                <div class="topbar-actions">
+                    <!-- Actions moved to Sidebar for cleaner look -->
+                </div>
+            </header>
+
+            <!-- TABS CONTAINER -->
+            <div class="tab-content-container">
+
+                <!-- TAB 1: IKHTISAR (Dashboard) -->
+                <section id="dashboard-tab" class="tab-pane active fade-in">
+                    <div class="dashboard-main-area">
+                        <div class="section-heading mb-30">
+                            <h2 class="fw-bold text-2xl">📅 Jadwal Sesi Hari Ini</h2>
+                            <p class="text-muted">Akses cepat ke tautan Zoom untuk setiap pertemuan hari ini.</p>
+                        </div>
+
+                        <div id="today-sessions-container" class="today-sessions-grid">
+                            <!-- Akan diisi oleh JS secara dinamis -->
+                        </div>
+
+                        <div class="bento-box glass mt-30">
+                            <h3 class="fw-bold mb-15">📢 Pengumuman Terbaru</h3>
+                            <ul class="activity-list">
+                                <li><span class="bullet success"></span> Sesi dengan Alex Johnson telah dijadwalkan
+                                    ulang ke pukul 19:00 WIB. <span class="text-muted text-sm ml-10">Baru saja</span>
+                                </li>
+                                <li><span class="bullet warning"></span> Mohon lengkapi laporan sesi untuk Siti Aminah
+                                    (Pertemuan #4). <span class="text-muted text-sm ml-10">3 jam yang lalu</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: MODUL SAYA -->
+                <section id="modules-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20">
+                        <h2 class="fw-bold">Modul yang Ditugaskan 📚</h2>
+                        <p class="text-muted text-sm">Berikut adalah modul materi yang dapat Anda akses dan bagikan ke
+                            siswa.</p>
+                    </div>
+
+                    <div id="teacher-modules-list" class="module-grid">
+                        <!-- Akan diisi oleh JS -->
+                    </div>
+                </section>
+
+                <!-- TAB 3: JADWAL & KELAS (FULL CALENDAR) -->
+                <section id="schedule-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20 flex-between">
+                        <div>
+                            <h2 class="fw-bold">Kalender Kelas 📅</h2>
+                            <p class="text-muted text-sm">Klik pada tanggal untuk menjadwalkan sesi Zoom baru dengan
+                                siswa.</p>
+                        </div>
+                        <div class="calendar-controls flex items-center gap-2">
+                            <button id="prev-month" class="icon-btn" style="background: var(--border-color);">◀</button>
+                            <h3 id="current-month-display" class="fw-bold mx-2"
+                                style="margin: 0 1rem; width: 140px; text-align: center;">Bulan Tahun</h3>
+                            <button id="next-month" class="icon-btn" style="background: var(--border-color);">▶</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-layout" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                        <!-- Calendar Grid -->
+                        <div class="calendar-main glass flex-1 p-4 rounded-xl"
+                            style="flex: 1; padding: 1.5rem; border-radius: 16px;">
+                            <div class="calendar-days-header"
+                                style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                <div>Min</div>
+                                <div>Sen</div>
+                                <div>Sel</div>
+                                <div>Rab</div>
+                                <div>Kam</div>
+                                <div>Jum</div>
+                                <div>Sab</div>
+                            </div>
+                            <div id="calendar-grid" class="calendar-grid"
+                                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem;">
+                                <!-- Days will be generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Side Panel for Form -->
+                        <div class="calendar-sidebar glass p-4 rounded-xl"
+                            style="width: 340px; padding: 1.5rem; border-radius: 16px; flex-shrink: 0;">
+                            <h3 class="fw-bold mb-10" id="selected-date-title">Pilih Tanggal</h3>
+                            <p class="text-xs text-muted mb-15">Tambahkan jadwal kelas dan link Zoom untuk siswa Anda.
+                            </p>
+
+                            <form id="zoom-form" class="hidden">
+                                <input type="hidden" id="class-date" required>
+
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Siswa / Kelas</label>
+                                    <select class="form-control text-sm" id="student-select" required
+                                        style="padding: 0.6rem;">
+                                        <option value="">-- Pilih Siswa --</option>
+                                        <option value="Alex M. (Algoritma)">Alex M. (Algoritma)</option>
+                                        <option value="Siti A. (Web Dev)">Siti A. (Web Dev)</option>
+                                        <option value="Rio Kevin (IoT)">Rio Kevin (IoT)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Jam Mulai</label>
+                                    <input type="time" class="form-control text-sm" id="class-time" required
+                                        style="padding: 0.6rem;">
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Link Zoom</label>
+                                    <input type="url" class="form-control text-sm" id="zoom-link"
+                                        placeholder="https://zoom.us/..." required style="padding: 0.6rem;">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-full mt-10">Simpan Jadwal</button>
+                            </form>
+
+                            <div id="no-date-selected" class="text-center text-muted text-sm" style="margin-top: 2rem;">
+                                👆 Klik salah satu tanggal pada kalender untuk mulai menjadwalkan.
+                            </div>
+
+                            <hr style="border:0; border-top: 1px solid var(--border-color); margin: 1.5rem 0;">
+
+                            <h4 class="fw-bold text-sm mb-10">Jadwal di Tanggal Ini:</h4>
+                            <div id="day-events-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div class="text-xs text-muted text-center">Belum ada jadwal.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: DAFTAR SISWA BIMBINGAN -->
+                <section id="students-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20">
+                        <h2 class="fw-bold">Daftar Siswa Bimbingan 👨‍🎓</h2>
+                        <p class="text-muted text-sm">Pantau progres, kehadiran, dan performa setiap siswa yang Anda
+                            ampu.</p>
+                    </div>
+
+                    <!-- Stat ringkasan siswa -->
+                    <div class="bento-dashboard three-cols mb-20">
+                        <div class="bento-box glass">
+                            <h3 class="text-sm text-muted uppercase tracking-wide">Total Siswa Diampu</h3>
+                            <div class="stat-large mt-10" id="my-students-count">0</div>
+                        </div>
+                        <div class="bento-box glass">
+                            <h3 class="text-sm text-muted uppercase tracking-wide">Sesi Selesai</h3>
+                            <div class="stat-large mt-10" id="my-sessions-count">0</div>
+                        </div>
+                        <div class="bento-box glass">
+                            <h3 class="text-sm text-muted uppercase tracking-wide">Rata-rata Nilai</h3>
+                            <div class="stat-large mt-10" id="my-avg-score">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Siswa -->
+                    <div class="bento-box glass no-padding table-panel">
+                        <div class="data-table-container">
+                            <table class="teacher-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Siswa</th>
+                                        <th>Modul</th>
+                                        <th>Progress</th>
+                                        <th>Sesi Dilakukan</th>
+                                        <th>Kehadiran</th>
+                                        <th>Rata-rata Nilai</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="my-students-table-body">
+                                    <!-- Diisi via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Detail per Siswa (expandable) -->
+                    <div id="student-detail-panel" class="mt-20 hidden">
+                        <!-- Diisi via JS saat row diklik -->
+                    </div>
+                </section>
+
+                <!-- TAB: LAPORAN SESI -->
+                <section id="report-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20 flex-between">
+                        <div>
+                            <h2 class="fw-bold">✍️ Laporan Sesi Pertemuan</h2>
+                            <p class="text-muted text-sm">Isi laporan setelah kelas selesai. Data ini akan tampil di
+                                Parent Hub siswa secara otomatis.</p>
+                        </div>
+                    </div>
+
+                    <div class="calendar-layout" style="display:flex; gap:1.5rem; align-items:flex-start;">
+                        <!-- Form Input Laporan -->
+                        <div class="bento-box glass" style="flex:1; min-width:0;">
+                            <h3 class="fw-bold text-sm mb-20"
+                                style="color:var(--primary-color); text-transform:uppercase; letter-spacing:.05em;">Form
+                                Laporan Baru</h3>
+                            <form id="session-report-form">
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Pilih Siswa (Enrollment)</label>
+                                    <select id="rep-enrollment" class="form-control text-sm" required
+                                        style="padding:.6rem;">
+                                        <option value="">-- Pilih Siswa --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Topik / Materi Hari Ini</label>
+                                    <input type="text" id="rep-topic" class="form-control text-sm"
+                                        placeholder="Contoh: Control Flow & Looping" required style="padding:.6rem;">
+                                </div>
+                                <div class="form-row mb-10" style="display:flex; gap:1rem;">
+                                    <div class="form-group" style="flex:1">
+                                        <label class="text-sm">Tanggal Sesi</label>
+                                        <input type="date" id="rep-date" class="form-control text-sm" required
+                                            style="padding:.6rem;">
+                                    </div>
+                                    <div class="form-group" style="flex:1">
+                                        <label class="text-sm">Kehadiran Siswa</label>
+                                        <select id="rep-attendance" class="form-control text-sm" required
+                                            style="padding:.6rem;">
+                                            <option value="hadir">✅ Hadir</option>
+                                            <option value="tidak hadir">❌ Tidak Hadir</option>
+                                            <option value="izin">📝 Izin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Nilai / Skor (0–100) <span class="text-muted text-xs">—
+                                            kosongkan jika tidak ada kuis</span></label>
+                                    <input type="number" id="rep-score" class="form-control text-sm"
+                                        placeholder="Contoh: 85" min="0" max="100" style="padding:.6rem;">
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Catatan untuk Orang Tua</label>
+                                    <textarea id="rep-notes" class="form-control text-sm" rows="4"
+                                        placeholder="Tulis feedback singkat perkembangan siswa hari ini..."
+                                        style="padding:.6rem; resize:vertical;"></textarea>
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label class="text-sm">Honorarium per Sesi (Rp)</label>
+                                    <input type="number" id="rep-honorarium" class="form-control text-sm" value="75000"
+                                        style="padding:.6rem;">
+                                </div>
+                                <button type="submit" class="btn btn-primary w-full mt-10"
+                                    style="justify-content:center; padding:12px;">📤 Simpan Laporan Sesi</button>
+                            </form>
+                        </div>
+
+                        <!-- Riwayat Laporan Terbaru -->
+                        <div class="bento-box glass" style="width:380px; flex-shrink:0;">
+                            <h3 class="fw-bold text-sm mb-15"
+                                style="color:var(--primary-color); text-transform:uppercase; letter-spacing:.05em;">
+                                Riwayat Laporan Terkini</h3>
+                            <div id="recent-reports-list" style="display:flex; flex-direction:column; gap:.75rem;">
+                                <div class="text-xs text-muted text-center" style="margin-top:1rem;">Memuat data...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB: HONORARIUM -->
+                <section id="earnings-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20"
+                        style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <h2 class="fw-bold">💰 Rincian Honorarium</h2>
+                            <p class="text-muted text-sm">Pantau pendapatanmu berdasarkan sesi yang telah diselesaikan.
+                            </p>
+                        </div>
+                        <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak Rekap</button>
+                    </div>
+
+                    <div class="stats-grid mb-20"
+                        style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;">
+                        <div class="bento-box glass text-center">
+                            <span class="text-xs text-muted uppercase">Total Pendapatan</span>
+                            <h3 class="fw-bold text-gradient mt-5" id="total-earnings" style="font-size:1.5rem;">Rp 0
+                            </h3>
+                        </div>
+                        <div class="bento-box glass text-center">
+                            <span class="text-xs text-muted uppercase">Sesi Selesai</span>
+                            <h3 class="fw-bold mt-5" id="total-sessions-count" style="font-size:1.5rem;">0</h3>
+                        </div>
+                        <div class="bento-box glass text-center">
+                            <span class="text-xs text-muted uppercase">Rata-rata per Sesi</span>
+                            <h3 class="fw-bold mt-5" id="avg-earnings" style="font-size:1.5rem;">Rp 0</h3>
+                        </div>
+                    </div>
+
+                    <div class="bento-box glass wide-box">
+                        <h3 class="fw-bold text-sm mb-15">📜 Riwayat Sesi & Honorarium</h3>
+                        <div class="data-table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Siswa</th>
+                                        <th>Topik</th>
+                                        <th>Kehadiran</th>
+                                        <th>Honorarium</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="earnings-tbody">
+                                    <!-- Diisi via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Teacher Profile & Stats -->
+        <aside class="rightbar glass animate-scale-in">
+            <div class="sidebar-header profile-header-sidebar">
+                <div class="notification-col">
+                    <div class="notification-wrapper">
+                        <button class="icon-btn" id="notif-toggle" aria-label="Notifications">
+                            <span class="nav-icon">🔔</span>
+                            <span class="notif-badge" id="notif-count">0</span>
+                        </button>
+                        <div class="notif-dropdown glass hidden" id="notif-dropdown">
+                            <div class="notif-header">
+                                <h4 class="fw-bold text-sm">Notifikasi</h4>
+                                <button class="text-xs text-primary btn-link" id="mark-all-read">Tandai semua
+                                    dibaca</button>
+                            </div>
+                            <div class="notif-list" id="notif-list">
+                                <div class="text-center p-20 text-muted text-xs">Tidak ada notifikasi baru</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-summary">
+                    <h2 class="fw-bold text-sm" id="rightbar-name">Budi Doremi</h2>
+                    <span class="badge badge-instruktur">INSTRUKTUR</span>
+                </div>
+                <div class="avatar-settings-group">
+                    <div class="teacher-avatar-small" id="rightbar-avatar">
+                        <div class="avatar-placeholder">BD</div>
+                    </div>
+                    <div class="dropdown-container">
+                        <button class="icon-btn settings-gear-btn" id="settings-gear" onclick="toggleDropdown('settings-dropdown-menu')">
+                            ⚙️
+                        </button>
+                        <div class="dropdown-menu glass hidden" id="settings-dropdown-menu"
+                            style="position: absolute; right: 0; top: 45px; width: 200px; z-index: 99999;">
+                            <a href="#" class="dropdown-item" onclick="openSettingsModal()">👤 Ubah Data</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item text-danger" onclick="handleLogout()">🚪 Keluar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav rightbar-body">
+                <div class="p-20">
+                    <!-- Rating & Siswa in Separate Boxes side-by-side with matched gap -->
+                    <div class="grid-2 gap-5 mb-20">
+                        <div class="bento-box glass text-center" style="padding: 15px 5px;">
+                            <div class="text-xs text-muted">Rating</div>
+                            <div class="fw-bold text-lg text-warning">⭐ 4.9</div>
+                        </div>
+                        <div class="bento-box glass text-center" style="padding: 15px 5px;">
+                            <div class="text-xs text-muted">Siswa</div>
+                            <div class="fw-bold text-lg" id="rightbar-student-count">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Swap: Tentang Saya first -->
+                    <div class="mb-25">
+                        <h3 class="text-xs fw-bold uppercase text-muted mb-10 tracking-widest">Tentang Saya</h3>
+                        <p class="text-xs text-muted italic line-height-relaxed" id="rightbar-bio">Belum ada bio
+                            singkat.</p>
+                    </div>
+
+                    <!-- Skill/Keahlian below -->
+                    <div class="mb-20">
+                        <h3 class="text-xs fw-bold uppercase text-muted mb-10 tracking-widest">Keahlian</h3>
+                        <div id="rightbar-subjects" class="subjects-list-sidebar flex flex-wrap gap-5">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="text-xs text-muted text-center w-full">Bites2Bytes v1.2</div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../shared/js/supabase-config.js"></script>
+    <!-- Script Global -->
+    <script src="../shared/js/utils.js"></script>
+    <script src="../shared/js/data-init.js"></script>
+    <script src="../shared/js/notifications.js"></script>
+    <script src="../shared/js/theme-toggle.js"></script>
+    <!-- Script Lokal -->
+    <script src="script.js"></script>
+</body>
+
+</html>

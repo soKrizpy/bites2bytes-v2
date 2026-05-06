@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siswa - Bites2Bytes</title>
+    <link rel="stylesheet" href="../shared/css/theme.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">B2B</div>
+                    <span class="logo-text">Student Hub</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-target="dashboard-tab">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-title">Dasbor Saya</span>
+                    </li>
+                    <li class="nav-item" data-target="schedule-tab">
+                        <span class="nav-icon">📅</span>
+                        <span class="nav-title">Jadwal & Zoom</span>
+                    </li>
+                    <li class="nav-item" data-target="modules-tab">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-title">Modul Belajar</span>
+                    </li>
+                    <li class="nav-item" data-target="certificates-tab">
+                        <span class="nav-icon">🎓</span>
+                        <span class="nav-title">Sertifikat</span>
+                    </li>
+                    <li class="nav-item" data-target="leaderboard-tab">
+                        <span class="nav-icon">🏆</span>
+                        <span class="nav-title">Leaderboard</span>
+                    </li>
+                    <li class="nav-item" data-target="parent-tab">
+                        <span class="nav-icon">🛡️</span>
+                        <span class="nav-title">Parent Hub</span>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header Atas -->
+            <header class="topbar animate-fade-up">
+                <div>
+                    <h1 class="fw-bold text-gradient" id="student-greeting">Halo! 👋</h1>
+                    <p class="text-muted text-sm" id="student-subtitle">Teruslah berlatih dan raih prestasimu.</p>
+                </div>
+                <div class="topbar-actions">
+                    <span id="student-extra-display" class="badge badge-outline text-xs">Memuat kelas...</span>
+                </div>
+            </header>
+
+            <!-- TABS CONTAINER -->
+            <div class="tab-content-container">
+                
+                <!-- TAB 1: DASBOR (Bento Grid) -->
+                <section id="dashboard-tab" class="tab-pane active fade-in">
+                    <div class="bento-dashboard">
+                        <!-- Card: Analitik Belajar Pribadi -->
+                        <div class="bento-box glass analytics-box animate-fade-up stagger-1">
+                            <div class="box-header">
+                                <h3 class="fw-bold">📈 Analitik Belajar</h3>
+                                <span class="badge badge-success">Sangat Baik</span>
+                            </div>
+                            <div class="box-body">
+                                <div class="analytics-mini-grid">
+                                    <div class="ana-item">
+                                        <div class="ana-label">Kehadiran</div>
+                                        <div class="ana-value" id="ana-attendance">0%</div>
+                                    </div>
+                                    <div class="ana-item">
+                                        <div class="ana-label">Kuis Lulus</div>
+                                        <div class="ana-value" id="ana-quiz">0</div>
+                                    </div>
+                                </div>
+                                <div class="chart-sim-container mt-15">
+                                    <div class="chart-bar-sim" style="height: 40%;"></div>
+                                    <div class="chart-bar-sim" style="height: 60%;"></div>
+                                    <div class="chart-bar-sim" style="height: 85%;"></div>
+                                    <div class="chart-bar-sim active" style="height: 95%;"></div>
+                                    <div class="chart-bar-sim" style="height: 70%;"></div>
+                                </div>
+                                <p class="text-xs text-muted mt-10 text-center">Tren Performa 5 Sesi Terakhir</p>
+                            </div>
+                        </div>
+
+                        <!-- Card: Jadwal Terdekat (Live dari b2b_schedules) -->
+                        <div class="bento-box glass wide-box">
+                            <div class="box-header">
+                                <h3 class="fw-bold">Jadwal Mentoring Terdekat</h3>
+                                <a data-target="schedule-tab" class="nav-link-btn text-xs text-muted" style="cursor:pointer">Lihat Semua →</a>
+                            </div>
+                            <div class="box-body schedule-list" id="next-schedule-container">
+                                <div class="text-muted text-sm" style="padding:.5rem 0">Memuat jadwal...</div>
+                            </div>
+                        </div>
+
+                        <!-- Card: Learning Path Visual -->
+                        <div class="bento-box glass wide-box">
+                            <div class="box-header mb-15">
+                                <h3 class="fw-bold">🗺️ Learning Path Saya</h3>
+                                <span class="text-xs text-muted">Alur perjalanan belajarmu</span>
+                            </div>
+                            <div id="learning-path-container" class="learning-path">
+                                <!-- Diisi via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: JADWAL & ZOOM -->
+                <section id="schedule-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20">
+                        <h2 class="fw-bold">📅 Jadwal & Zoom Kelas</h2>
+                        <p class="text-muted text-sm">Semua sesi mendatang yang telah dijadwalkan guru untukmu.</p>
+                    </div>
+
+                    <!-- Upcoming sessions -->
+                    <div id="upcoming-sessions-list" class="schedule-cards-grid">
+                        <!-- Diisi via JS -->
+                    </div>
+
+                    <!-- Past sessions header -->
+                    <h3 class="fw-bold mt-30 mb-15" style="font-size:1rem; color:var(--text-muted)">Sesi Sebelumnya</h3>
+                    <div id="past-sessions-list" class="schedule-cards-grid">
+                        <!-- Diisi via JS -->
+                    </div>
+                </section>
+
+                <!-- TAB 3: SERTIFIKAT -->
+                <section id="certificates-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading">
+                        <h2 class="fw-bold">Sertifikat Kelulusan 🎓</h2>
+                        <p class="text-muted text-sm">Semua pencapaian pembelajaranmu tercatat di sini dan divalidasi resmi.</p>
+                    </div>
+                    
+                    <div class="certificate-grid mt-20" id="certificates-grid">
+                        <!-- Diisi via JS atau fallback hardcoded -->
+                        <div class="certificate-card glass">
+                            <div class="cert-image placeholder-grad-1">Sertifikat React</div>
+                            <div class="cert-body">
+                                <h4 class="fw-bold">Front-End Web Development</h4>
+                                <p class="text-xs text-muted mb-10">Diterbitkan: 12 Sept 2026 - ID: B2B-FE-9901</p>
+                                <button class="btn btn-outline btn-sm w-full">Unduh PDF</button>
+                            </div>
+                        </div>
+                        <div class="certificate-card glass">
+                            <div class="cert-image placeholder-grad-2">Sertifikat Python</div>
+                            <div class="cert-body">
+                                <h4 class="fw-bold">Dasar-Dasar Python Interaktif</h4>
+                                <p class="text-xs text-muted mb-10">Diterbitkan: 21 Agu 2026 - ID: B2B-PY-8832</p>
+                                <button class="btn btn-outline btn-sm w-full">Unduh PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB: LEADERBOARD -->
+                <section id="leaderboard-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading mb-20">
+                        <h2 class="fw-bold">🏆 Leaderboard Siswa</h2>
+                        <p class="text-muted text-sm">Lihat peringkatmu dibandingkan siswa lainnya. Dapatkan XP dengan rajin belajar!</p>
+                    </div>
+
+                    <div class="leaderboard-layout">
+                        <!-- Top 3 Podium -->
+                        <div class="podium-container mb-30" id="leaderboard-podium">
+                            <!-- Diisi via JS -->
+                        </div>
+
+                        <!-- Full Ranking Table -->
+                        <div class="bento-box glass wide-box">
+                            <div class="data-table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Posisi</th>
+                                            <th>Siswa</th>
+                                            <th>Pencapaian</th>
+                                            <th>Total XP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="leaderboard-tbody">
+                                        <!-- Diisi via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: PARENT HUB -->
+                <section id="parent-tab" class="tab-pane hidden fade-in">
+                    <div id="parent-hub-content">
+                        <div class="section-heading flex-between mb-20">
+                            <div>
+                                <h2 class="fw-bold text-gradient">Parent Hub 🛡️</h2>
+                                <p class="text-muted text-sm">Mode Tinjauan Transparan. Wali murid dapat memantau perkembangan belajar di sini.</p>
+                            </div>
+                        </div>
+
+                        <div class="bento-dashboard mt-10">
+                            <!-- Log Kehadiran & Nilai dari b2b_sessions -->
+                            <div class="bento-box glass wide-box">
+                                <h3 class="fw-bold mb-15">📋 Log Aktivitas & Kehadiran</h3>
+                                <div class="data-table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Topik / Materi</th>
+                                                <th>Guru</th>
+                                                <th>Kehadiran</th>
+                                                <th>Nilai</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="parent-sessions-tbody">
+                                            <tr><td colspan="5" class="text-center text-muted" style="padding:1.5rem">Memuat data...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Pesan Mentor dari sesi terbaru -->
+                            <div class="bento-box glass">
+                                <h3 class="fw-bold mb-15">💬 Pesan Terbaru dari Mentor</h3>
+                                <div id="parent-mentor-messages">
+                                    <div class="text-muted text-sm">Memuat pesan...</div>
+                                </div>
+                            </div>
+
+                            <!-- Ringkasan Statistik -->
+                            <div class="bento-box glass">
+                                <h3 class="fw-bold mb-15">📊 Ringkasan Belajar</h3>
+                                <div style="display:flex; flex-direction:column; gap:12px;" id="parent-summary">
+                                    <div class="text-muted text-sm">Memuat...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: MODUL BELAJAR -->
+                <section id="modules-tab" class="tab-pane hidden fade-in">
+                    <div class="section-heading flex-between mb-20">
+                        <div>
+                            <h2 class="fw-bold">Modul Belajar 📚</h2>
+                            <p class="text-muted text-sm">Akses materi, video pembelajaran, dan kuis Anda di sini.</p>
+                        </div>
+                        <div class="search-box">
+                            <input type="text" class="form-control text-sm" placeholder="Cari modul...">
+                        </div>
+                    </div>
+                    
+                    <div class="module-grid" id="student-modules-grid">
+                        <!-- Diisi via JS -->
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+
+        <!-- Right Sidebar: Student Profile & Stats -->
+        <aside class="rightbar glass animate-scale-in">
+            <div class="sidebar-header profile-header-sidebar">
+                <div class="notification-col">
+                    <div class="notification-wrapper">
+                        <button class="icon-btn" id="notif-toggle" aria-label="Notifications">
+                            <span class="nav-icon">🔔</span>
+                            <span class="notif-badge" id="notif-count">0</span>
+                        </button>
+                        <div class="notif-dropdown glass hidden" id="notif-dropdown">
+                            <div class="notif-header">
+                                <h4 class="fw-bold text-sm">Notifikasi</h4>
+                                <button class="text-xs text-primary btn-link" id="mark-all-read">Tandai semua dibaca</button>
+                            </div>
+                            <div class="notif-list" id="notif-list">
+                                <div class="text-center p-20 text-muted text-xs">Tidak ada notifikasi baru</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-summary">
+                    <h2 class="fw-bold text-sm" id="student-display-name">Alex M.</h2>
+                    <div class="flex items-center gap-2">
+                        <span class="badge badge-primary">Siswa</span>
+                        <span class="streak-badge" id="student-streak" title="Sederet Hari Belajar 🔥">🔥 0 Hari</span>
+                    </div>
+                </div>
+                <div class="avatar-settings-group">
+                    <div class="teacher-avatar-small" id="student-avatar">
+                        <div class="avatar-placeholder">AM</div>
+                    </div>
+                    <div class="dropdown-container">
+                        <button class="icon-btn settings-gear-btn" id="settings-gear" onclick="toggleDropdown('settings-dropdown-menu')">
+                            ⚙️
+                        </button>
+                        <div class="dropdown-menu glass hidden" id="settings-dropdown-menu" style="position: absolute; right: 0; top: 45px; width: 200px; z-index: 99999;">
+                            <a href="#" class="dropdown-item" onclick="openSettingsModal()">👤 Ubah Data</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item text-danger" onclick="handleLogout()">🚪 Keluar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav rightbar-body">
+                <div class="p-20">
+                    <!-- Stats in Separate Boxes side-by-side -->
+                    <div class="grid-2 gap-10 mb-20">
+                        <div class="bento-box glass text-center" style="padding: 15px 5px;">
+                            <div class="text-xs text-muted">Poin XP</div>
+                            <div class="fw-bold text-lg text-primary" id="student-xp-sidebar">0</div>
+                        </div>
+                        <div class="bento-box glass text-center" style="padding: 15px 5px;">
+                            <div class="text-xs text-muted">Rata-rata</div>
+                            <div class="fw-bold text-lg" id="avg-score-display">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Level Progress -->
+                    <div class="mb-20">
+                        <div class="flex-between mb-5">
+                            <h3 class="text-xs fw-bold uppercase text-muted tracking-widest" id="student-level">Level 1</h3>
+                            <span class="text-xs text-muted" id="student-xp">0/1000 XP</span>
+                        </div>
+                        <div class="progress-bar" style="height: 6px; background: var(--border-color); border-radius: 10px; overflow: hidden;">
+                            <div class="progress-fill" id="xp-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--accent-color));"></div>
+                        </div>
+                    </div>
+
+                    <!-- Misi Harian -->
+                    <div class="mb-25">
+                        <div class="flex-between mb-10">
+                            <h3 class="text-xs fw-bold uppercase text-muted tracking-widest">Misi Hari Ini</h3>
+                            <span class="text-xs text-muted" id="mission-progress">0/3</span>
+                        </div>
+                        <div class="mission-list" id="mission-list">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Tentang Saya (Bio) -->
+                    <div class="mb-20">
+                        <h3 class="text-xs fw-bold uppercase text-muted mb-10 tracking-widest">Bio</h3>
+                        <p class="text-xs text-muted italic line-height-relaxed" id="student-bio-display">Belum ada bio singkat.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="text-xs text-muted text-center w-full">Bites2Bytes v1.2</div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../shared/js/supabase-config.js"></script>
+    <!-- Script Global -->
+    <script src="../shared/js/utils.js"></script>
+    <script src="../shared/js/data-init.js"></script>
+    <script src="../shared/js/notifications.js"></script>
+    <script src="../shared/js/theme-toggle.js"></script>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div id="quiz-header" class="flex-between">
+                <h2 id="quiz-title">Kuis Topik</h2>
+                <button class="icon-btn" onclick="closeQuiz()">✕</button>
+            </div>
+            <div id="quiz-body" class="mt-20">
+                <!-- Konten Kuis -->
+            </div>
+        </div>
+    </div>
+    <!-- Script Lokal -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bites2Bytes - Platform Edutech Modern</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Latar Belakang Gradien Ambien -->
+    <div class="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Navigasi -->
+    <nav class="navbar glass">
+        <div class="container nav-content">
+            <a href="#" class="logo">
+                <div class="logo-icon">B2B</div>
+                <span>Bites2Bytes</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#beranda">Beranda</a></li>
+                <li><a href="#fitur">Fitur</a></li>
+                <li><a href="#testimoni">Testimoni</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+                    <!-- SVG Bulan (Dark Mode Default) -->
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <!-- SVG Matahari -->
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+                <a href="../login/index.html" class="btn btn-primary">Masuk Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="beranda" class="hero container">
+        <div class="hero-content">
+            <div class="badge">🚀 Masa Depan Pendidikan Telah Hadir</div>
+            <h1 class="hero-title">Belajar Lebih <span class="text-gradient">Cerdas</span>, Terhubung Lebih Erat!</h1>
+            <p class="hero-subtitle">Platform bimbingan belajar komprehensif yang menjembatani Guru, Siswa, dan Orang Tua. Pantau progres seketika, akses materi premium, dan raih nilai impianmu.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-primary btn-lg">Daftar sebagai Siswa</a>
+                <a href="#" class="btn btn-outline btn-lg">Gabung sebagai Guru</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-card glass float-anim-1">
+                <div class="card-header">
+                    <div class="avatar"></div>
+                    <div>
+                        <div class="fw-bold">Rapor Belajar</div>
+                        <div class="text-sm text-muted">Bulan Ini</div>
+                    </div>
+                </div>
+                <div class="score">95<span class="text-sm">/100</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width: 95%;"></div></div>
+            </div>
+            <div class="floating-card glass float-anim-2" style="top: 20%; right: 0;">
+                <div class="text-sm fw-bold">Modul Baru Terbuka! 🔓</div>
+                <div class="text-xs text-muted">Algoritma Dasar Python</div>
+            </div>
+            <div class="floating-card glass float-anim-3" style="bottom: 10%; left: 10%;">
+                <div class="fw-bold">Parent Hub Aktif</div>
+                <div class="text-xs text-muted">Orang tua Anda sedang meninjau.</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Fitur Bento Grid -->
+    <section id="fitur" class="features section container">
+        <div class="section-header">
+            <h2>Kekuatan Ekosistem <span class="text-gradient">Bites2Bytes</span></h2>
+            <p class="text-muted">Desain berteknologi tinggi untuk pengalaman belajar tanpa batas hambatan.</p>
+        </div>
+
+        <div class="bento-grid">
+            <!-- Bento Box 1: Parent Hub (Large) -->
+            <div class="bento-item glass bento-large">
+                <div class="bento-content">
+                    <div class="bento-icon">🛡️</div>
+                    <h3>Parent Hub</h3>
+                    <p>Pantau perkembangan akademik, kehadiran, dan aktivitas anak Anda secara real-time. Tidak ada lagi hasil belajar yang disembunyikan. Transparansi penuh demi kesuksesan bersama.</p>
+                </div>
+                <div class="bento-graphic parent-hub-graphic">
+                    <div class="chart-bar" style="height: 40%"></div>
+                    <div class="chart-bar" style="height: 60%"></div>
+                    <div class="chart-bar" style="height: 80%"></div>
+                    <div class="chart-bar" style="height: 100%; background: var(--primary-color)"></div>
+                </div>
+            </div>
+
+            <!-- Bento Box 2: Teacher Portal -->
+            <div class="bento-item glass">
+                <div class="bento-content">
+                    <div class="bento-icon">👨‍🏫</div>
+                    <h3>Portal Pengajar</h3>
+                    <p>Kelola kelas, materi pengajaran, dan laporan gaji dalam satu dasbor yang sangat intuitif.</p>
+                </div>
+            </div>
+
+            <!-- Bento Box 3: Gamifikasi -->
+            <div class="bento-item glass">
+                <div class="bento-content">
+                    <div class="bento-icon">🏆</div>
+                    <h3>Gamifikasi Pembelajaran</h3>
+                    <p>Dapatkan lencana dan capai target poin dari setiap modul yang diselesaikan.</p>
+                </div>
+            </div>
+
+            <!-- Bento Box 4: Modul Interaktif (Wide) -->
+            <div class="bento-item glass bento-wide">
+                <div class="bento-content">
+                    <div class="bento-icon">📚</div>
+                    <h3>Modul Interaktif & Sertifikasi</h3>
+                    <p>Akses materi yang disesuaikan secara dinamis dan dapatkan sertifikat otentik berlambang kebanggaan setiap kali menyelesaikan jalur pembelajaran Anda.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta section">
+        <div class="container glass cta-card">
+            <h2>Siap Mengubah Cara Anda Berinteraksi?</h2>
+            <p>Jadilah jembatan utama peraih prestasi masa depan.</p>
+            <a href="#" class="btn btn-primary btn-lg mt-4">Mulai Sekarang, Gratis!</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <div class="logo">
+                    <div class="logo-icon">B2B</div>
+                    <span>Bites2Bytes</span>
+                </div>
+                <p class="text-muted mt-2">Platform edukasi masa depan dengan pengalaman terbaik.</p>
+            </div>
+            <div class="footer-links">
+                <div>
+                    <h4 class="fw-bold">Produk</h4>
+                    <ul class="text-muted">
+                        <li><a href="#">Fitur</a></li>
+                        <li><a href="#">Harga</a></li>
+                        <li><a href="#">Keamanan</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="fw-bold">Ketentuan</h4>
+                    <ul class="text-muted">
+                        <li><a href="#">Kebijakan Privasi</a></li>
+                        <li><a href="#">Syarat Layanan</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container text-center text-muted footer-bottom">
+            <p>&copy; 2026 Bites2Bytes. All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- Shared Scripts -->
+    <script src="../shared/js/notifications.js"></script>
+    <script src="../shared/js/theme-toggle.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - Bites2Bytes</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Shared Theme CSS -->
+    <link rel="stylesheet" href="../shared/css/theme.css">
+    <!-- Local Login CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Theme Toggle at top right -->
+    <div class="theme-toggle-container">
+        <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon hidden"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card glass float-anim">
+            <div class="login-header">
+                <a href="../landing-page/index.html" class="logo justify-center" style="justify-content: center; text-decoration: none;">
+                    <div class="logo-icon">B2B</div>
+                    <span>Bites2Bytes</span>
+                </a>
+                <h1 class="mt-4" style="margin-top: 1rem;">Selamat Datang Kembali</h1>
+                <p class="text-muted">Masukkan identitas Anda untuk melanjutkan ke dasbor.</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Nomor WA / ID Pengguna</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="username" class="form-control font-mono" placeholder="Contoh: 62812345678" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mpin">MPIN</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="mpin" class="form-control font-mono" placeholder="••••••" maxlength="6" required>
+                        <button type="button" id="toggle-mpin" class="icon-btn-sm toggle-password" aria-label="Toggle MPIN visibility">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-options flex-between text-sm mt-3 mb-4">
+                    <label class="flex items-center gap-2 text-muted">
+                        <input type="checkbox"> Ingat saya
+                    </label>
+                    <a href="#" class="text-primary hover-underline" style="text-decoration: none;">Lupa MPIN?</a>
+                </div>
+
+                <div id="error-message" class="error-alert hidden">
+                    Kredensial tidak valid. Silakan coba lagi.
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">
+                    <span class="btn-text">Masuk Sekarang</span>
+                    <span class="spinner hidden">⏳ Memverifikasi...</span>
+                </button>
+            </form>
+
+            <div class="login-footer text-center mt-6 text-sm text-muted" style="margin-top: 1.5rem;">
+                <p>Belum memiliki akun? <a href="#" class="text-primary hover-underline fw-bold" style="text-decoration: none;">Hubungi Admin</a></p>
+            </div>
+            
+            <!-- Panduan Demo (bisa dihapus nanti) -->
+            <div class="demo-hints mt-6 p-4 rounded bg-darker border-subtle text-xs text-muted font-mono" style="margin-top: 1.5rem; text-align: left;">
+                <strong>[INFO DEMO] Kredensial Tes:</strong><br>
+                - Admin: <span class="text-success" style="color: var(--success-color);">admin</span> / <span class="text-success" style="color: var(--success-color);">123456</span><br>
+                - Siswa: <span class="text-primary" style="color: var(--primary-color);">62812345678</span> / <span class="text-primary" style="color: var(--primary-color);">142536</span><br>
+                - Guru: <span class="text-warning" style="color: var(--warning-color);">B2B-T-8812</span> / <span class="text-warning" style="color: var(--warning-color);">888222</span>
+            </div>
+
+            <!-- Developer Tools: Seed Account -->
+            <div id="dev-tools" class="mt-4">
+                <button id="seed-admin-btn" class="btn btn-sm btn-outline w-full" style="font-size: 0.7rem; opacity: 0.7;">
+                    🚀 Buat Akun Admin Test (First Time Only)
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Supabase SDK & Config -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../shared/js/supabase-config.js"></script>
+    <!-- Shared Scripts -->
+    <script src="../shared/js/data-init.js"></script>
+    <script src="../shared/js/notifications.js"></script>
+    <script src="../shared/js/theme-toggle.js"></script>
+    <!-- Local Login Script -->
+    <script src="script.js"></script>
+</body>
+</html>
