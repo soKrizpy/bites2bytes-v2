@@ -1,6 +1,8 @@
 // File: admin-dashboard/script.js
 
 document.addEventListener('DOMContentLoaded', () => {
+    const isDemoSession = () => !!localStorage.getItem('b2b_demo_session');
+
     // ---- Perbarui UI Profil Secara Dinamis ---- //
     if (window.updateProfileUI) window.updateProfileUI();
 
@@ -81,8 +83,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================
     // STAT CARDS LIVE — Hubungkan ke Supabase
     // ======================================================
+    function getDemoDashboardStats() {
+        const users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+        const enrollments = JSON.parse(localStorage.getItem('b2b_enrollments') || '[]');
+
+        const studentCount = users.filter(user => user.role === 'student').length;
+        const teacherCount = users.filter(user => user.role === 'teacher').length;
+        const enrollmentCount = enrollments.filter(enrollment => enrollment.status === 'active').length;
+
+        return {
+            studentCount,
+            teacherCount,
+            enrollmentCount,
+            total: studentCount + teacherCount
+        };
+    }
+
     async function updateDashboardStats() {
         try {
+            if (isDemoSession()) {
+                const stats = getDemoDashboardStats();
+                const statTotal = document.getElementById('stat-total');
+                const statStudents = document.getElementById('stat-students');
+                const statTeachers = document.getElementById('stat-teachers');
+                const statEnrollments = document.getElementById('stat-enrollments');
+
+                if (statTotal) statTotal.textContent = String(stats.total);
+                if (statStudents) statStudents.textContent = String(stats.studentCount);
+                if (statTeachers) statTeachers.textContent = String(stats.teacherCount);
+                if (statEnrollments) statEnrollments.textContent = String(stats.enrollmentCount);
+                return;
+            }
+
             const { count: studentCount } = await window.B2B_Supabase.client
                 .from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
             
@@ -561,10 +593,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const elTotal = document.getElementById('finance-total-honorarium');
             const elSessions = document.getElementById('finance-total-sessions');
             const elRate = document.getElementById('finance-attendance-rate');
+            const elAverage = document.getElementById('finance-avg-honorarium');
 
             if (elTotal) elTotal.textContent = formatRupiah(totalHonorarium);
             if (elSessions) elSessions.textContent = `${hadirSessions.length} sesi hadir dari ${totalSessions} total`;
             if (elRate) elRate.textContent = `${attendanceRate}%`;
+            if (elAverage) {
+                const teacherIds = [...new Set(sessions.map(ses => ses.teacher_id).filter(Boolean))];
+                const averageHonorarium = teacherIds.length > 0 ? Math.round(totalHonorarium / teacherIds.length) : 0;
+                elAverage.textContent = formatRupiah(averageHonorarium);
+            }
 
             // --- Log Sesi ---
             const sessionsBody = document.getElementById('finance-sessions-body');
@@ -576,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <tr class="fade-in">
                             <td class="text-xs text-muted">${formatDate(ses.date)}</td>
                             <td class="fw-bold text-sm">${ses.profiles?.name || 'Siswa'}</td>
-                            <td class="text-sm">Guru</td>
+                            <td class="text-sm">${getTeacherName(ses.teacher_id)}</td>
                             <td class="text-xs text-muted">${ses.topic}</td>
                             <td>
                                 <span class="badge ${ses.attendance === 'hadir' ? 'badge-success' : 'badge-danger'}">
@@ -772,6 +810,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function formatRupiah(amount) {
         return 'Rp ' + (amount || 0).toLocaleString('id-ID');
+    }
+
+    function getTeacherName(teacherId) {
+        const users = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+        return users.find(user => user.id === teacherId)?.name || 'Guru';
     }
 
     // ======================================================

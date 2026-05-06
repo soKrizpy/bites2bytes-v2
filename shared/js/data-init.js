@@ -5,7 +5,9 @@
 
 // FORCED CLEANUP: Membersihkan data profil yang tersangkut/bocor antar dashboard
 if (!localStorage.getItem('b2b_cleaned_v2')) {
-    localStorage.removeItem('b2b_currentUser');
+    if (!localStorage.getItem('b2b_demo_session')) {
+        localStorage.removeItem('b2b_currentUser');
+    }
     let usersData = JSON.parse(localStorage.getItem('b2b_users') || '[]');
     usersData = usersData.map(u => {
         delete u.photoUrl;
@@ -78,6 +80,23 @@ const INITIAL_MODULES = [
     }
 ];
 
+const DEMO_USERS = [
+    { id: "62812345678", name: "Alex Johnson", role: "student", extra: "Basic", mpin: "142536" },
+    { id: "62898765432", name: "Sarah Smith", role: "student", extra: "Basic", mpin: "654321" },
+    { id: "62877001122", name: "Rio Kevin", role: "student", extra: "Basic", mpin: "770011" },
+    { id: "62899001122", name: "Maya Putri", role: "student", extra: "Basic", mpin: "990011" },
+    { id: "B2B-T-8812", name: "Budi Doremi", role: "teacher", extra: "Web Developer, Roblox, Python", mpin: "888222", honorarium: 350000, sessionsCompleted: 14 },
+    { id: "B2B-T-9901", name: "Siti Aminah", role: "teacher", extra: "Python", mpin: "990011", honorarium: 300000, sessionsCompleted: 10 }
+];
+
+function mergeById(existingRows, demoRows) {
+    const byId = new Map(existingRows.map(row => [row.id, row]));
+    demoRows.forEach(row => {
+        byId.set(row.id, { ...row, ...(byId.get(row.id) || {}) });
+    });
+    return Array.from(byId.values());
+}
+
 // Inisialisasi jika kosong
 const currentModules = localStorage.getItem('b2b_modules');
 if (!currentModules || currentModules === '[]') {
@@ -101,13 +120,27 @@ if (!currentProgress || currentProgress === '{}') {
             badges: [],
             certificates: [],
             xp: 0
+        },
+        "62898765432": {
+            completedTopics: [],
+            quizScores: {},
+            badges: [],
+            certificates: [],
+            xp: 0
+        },
+        "62877001122": {
+            completedTopics: [],
+            quizScores: {},
+            badges: [],
+            certificates: [],
+            xp: 0
         }
     }));
 } else {
     // Migrasi format lama jika diperlukan
     let oldProgress = JSON.parse(localStorage.getItem('b2b_progress') || '{}');
     if (oldProgress.completedTopics) {
-        let newFormat = {
+        oldProgress = {
             "62899001122": {
                 completedTopics: oldProgress.completedTopics || [],
                 quizScores: oldProgress.quizScores || {},
@@ -116,26 +149,36 @@ if (!currentProgress || currentProgress === '{}') {
                 xp: oldProgress.xp || 0
             }
         };
-        localStorage.setItem('b2b_progress', JSON.stringify(newFormat));
     }
+
+    ["62812345678", "62898765432", "62877001122", "62899001122"].forEach(id => {
+        if (!oldProgress[id]) {
+            oldProgress[id] = {
+                completedTopics: [],
+                quizScores: {},
+                badges: [],
+                certificates: [],
+                xp: 0
+            };
+        }
+    });
+
+    localStorage.setItem('b2b_progress', JSON.stringify(oldProgress));
 }
 
 // Inisialisasi daftar guru (jika perlu untuk dropdown assignment)
-if (!localStorage.getItem('b2b_teachers')) {
-    localStorage.setItem('b2b_teachers', JSON.stringify([
-        { id: "B2B-T-8812", name: "Budi Santoso" }
-    ]));
-}
+const currentTeachers = JSON.parse(localStorage.getItem('b2b_teachers') || '[]');
+localStorage.setItem('b2b_teachers', JSON.stringify(mergeById(
+    currentTeachers,
+    DEMO_USERS.filter(user => user.role === 'teacher').map(user => ({
+        id: user.id,
+        name: user.name
+    }))
+)));
 
 // Inisialisasi daftar user utama
-const currentUsers = localStorage.getItem('b2b_users');
-if (!currentUsers || currentUsers === '[]') {
-    localStorage.setItem('b2b_users', JSON.stringify([
-        { id: "62899001122", name: "Maya Putri", role: "student", extra: "Basic", mpin: "990011" },
-        { id: "B2B-T-8812", name: "Budi Doremi", role: "teacher", extra: "Web Developer, Roblox, Python", mpin: "888222", honorarium: 350000, sessionsCompleted: 14 },
-        { id: "B2B-T-9901", name: "Siti Aminah", role: "teacher", extra: "Python", mpin: "990011", honorarium: 300000, sessionsCompleted: 10 }
-    ]));
-}
+const currentUsers = JSON.parse(localStorage.getItem('b2b_users') || '[]');
+localStorage.setItem('b2b_users', JSON.stringify(mergeById(currentUsers, DEMO_USERS)));
 
 /**
  * b2b_enrollments: Hubungan siswa ↔ guru ↔ modul

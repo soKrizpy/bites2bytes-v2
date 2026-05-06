@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: myEnrollments, error } = await window.B2B_Supabase.client
                 .from('enrollments')
-                .select('*, profiles:student_id(name)')
+                .select('*, profiles:student_id(name), module:module_id(title)')
                 .eq('teacher_id', teacherId)
                 .eq('status', 'active');
 
@@ -264,8 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const studentName = enr.profiles?.name || 'Siswa';
                 return `<option value="${enr.student_id}" 
                     data-enrollment-id="${enr.id}"
+                    data-name="${studentName}"
                     data-student-name="${studentName}"
-                    data-module-id="${enr.module_id}">
+                    data-module-id="${enr.module_id}"
+                    data-module-name="${enr.module?.title || 'Modul'}">
                     ${studentName}
                 </option>`;
             }).join('');
@@ -652,7 +654,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sel) return;
         sel.innerHTML = '<option value="">-- Pilih Siswa --</option>';
         myEnrollments.forEach(enr => {
-            sel.innerHTML += `<option value="${enr.id}" 
+            sel.innerHTML += `<option value="${enr.studentId}" 
+                data-enrollment-id="${enr.id}"
                 data-student-id="${enr.studentId}"
                 data-student-name="${enr.studentName}"
                 data-teacher-id="${enr.teacherId}"
@@ -721,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const reportData = {
                 enrollment_id: selectedOption.dataset.enrollmentId,
-                student_id: enrollSel.value,
+                student_id: selectedOption.dataset.studentId || enrollSel.value,
                 teacher_id: userSession.id,
                 module_id: selectedOption.dataset.moduleId,
                 topic: document.getElementById('rep-topic').value.trim(),

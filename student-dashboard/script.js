@@ -66,6 +66,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (sessionError) throw sessionError;
 
+            const { data: enrollments, error: enrollmentError } = await window.B2B_Supabase.client
+                .from('enrollments')
+                .select('*')
+                .eq('student_id', studentId)
+                .eq('status', 'active');
+
+            if (enrollmentError) throw enrollmentError;
+
+            const { data: modules, error: moduleError } = await window.B2B_Supabase.client
+                .from('modules')
+                .select('*');
+
+            if (moduleError) throw moduleError;
+
+            const progressState = {
+                completedTopics: progress?.completed_topics || [],
+                quizScores: progress?.quiz_scores || {},
+                badges: progress?.badges || [],
+                certificates: progress?.certificates || [],
+                xp
+            };
+
             // --- Update UI ---
             const xpSidebar = document.getElementById('student-xp-sidebar');
             if (xpSidebar) xpSidebar.textContent = xp.toLocaleString('id-ID');
@@ -93,7 +115,25 @@ document.addEventListener('DOMContentLoaded', () => {
             renderNextSchedule();
 
             // --- Learning Path ---
-            renderLearningPath();
+            renderLearningPath(
+                (enrollments || []).map(enr => ({
+                    id: enr.id,
+                    studentId: enr.student_id,
+                    teacherId: enr.teacher_id,
+                    moduleId: enr.module_id,
+                    studentName: userSession.name || 'Siswa',
+                    teacherName: (JSON.parse(localStorage.getItem('b2b_users') || '[]').find(user => user.id === enr.teacher_id) || {}).name || 'Guru',
+                    moduleName: (modules || []).find(mod => mod.id === enr.module_id)?.title || 'Modul'
+                })),
+                modules || [],
+                (sessions || []).map(session => ({
+                    ...session,
+                    enrollmentId: session.enrollment_id,
+                    studentId: session.student_id,
+                    moduleId: session.module_id
+                })),
+                progressState
+            );
         } catch (err) {
             console.error("Dashboard init error:", err);
         }

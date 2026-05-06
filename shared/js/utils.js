@@ -30,6 +30,17 @@ function animateCount(el, end, duration = 2500, decimals = 0) {
 
 window.animateCount = animateCount;
 
+function getCurrentUserProfile() {
+    const rawUser = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+    return {
+        ...rawUser,
+        photoUrl: rawUser.photoUrl || rawUser.photo_url || '',
+        bio: rawUser.bio || '',
+        extra: rawUser.extra || '',
+        name: rawUser.name || 'User'
+    };
+}
+
 /**
  * Toggle Dropdown Menu
  */
@@ -147,7 +158,7 @@ window.openSettingsModal = function() {
     if (adminFields) adminFields.innerHTML = '';
 
     // Populate current data
-    let currentUser = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+    let currentUser = getCurrentUserProfile();
     let userRole = (currentUser.role || '').toLowerCase();
 
     document.getElementById('settings-name').value = currentUser.name || '';
@@ -186,7 +197,7 @@ async function saveAccountSettings() {
     const extraInput = document.getElementById('settings-extra');
     const extra = extraInput ? extraInput.value : null;
     
-    let currentUser = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+    let currentUser = getCurrentUserProfile();
     
     try {
         const { error } = await window.B2B_Supabase.client
@@ -220,7 +231,7 @@ async function saveAccountSettings() {
  * Update Profile UI in Header
  */
 window.updateProfileUI = function() {
-    const currentUser = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+    const currentUser = getCurrentUserProfile();
     const role = currentUser.role || 'student';
     
     const nameEl = document.getElementById(`${role}-display-name`);
