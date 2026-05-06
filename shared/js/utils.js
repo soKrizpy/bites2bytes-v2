@@ -63,10 +63,10 @@ window.handleLogout = async function() {
             sessionStorage.clear();
             localStorage.removeItem('b2b_currentUser');
             // Redirect to login page
-            window.location.href = '../login/index.html';
+            window.location.href = '/login';
         } catch (err) {
             console.error("Logout error:", err);
-            window.location.href = '../login/index.html';
+            window.location.href = '/login';
         }
     }
 };
