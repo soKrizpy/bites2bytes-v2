@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
             mpin: u.mpin,
             role: u.role,
             redirectUrl: u.role === 'student'
-                ? '../student-dashboard/index.html'
-                : '../teacher-dashboard/index.html'
+                ? '/student'
+                : '/teacher'
         }));
 
         // Admin hardcoded (karena admin pusat biasanya tidak di manage di tabel user biasa)
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             name: 'Administrator', 
             mpin: '123456', 
             role: 'admin', 
-            redirectUrl: '../admin-dashboard/index.html' 
+            redirectUrl: '/admin' 
         };
 
         return [adminUser, ...dynamicUsers];
@@ -82,9 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (profileError) throw profileError;
 
             // 3. Set redirection based on role
-            let redirectUrl = '../student-dashboard/index.html';
-            if (profile.role === 'teacher') redirectUrl = '../teacher-dashboard/index.html';
-            if (profile.role === 'admin') redirectUrl = '../admin-dashboard/index.html';
+            let redirectUrl = '/student';
+            if (profile.role === 'teacher') redirectUrl = '/teacher';
+            if (profile.role === 'admin') redirectUrl = '/admin';
 
             // Store minimal session info for legacy support (if needed)
             localStorage.setItem('b2b_currentUser', JSON.stringify({
