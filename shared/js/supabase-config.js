@@ -6,8 +6,8 @@
 // Load Supabase via CDN (ensure this script is included before other scripts in HTML)
 // <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-const SUPABASE_URL = 'https://tpcgbpdacroqfkwnrjtk.supabase.co'; // Replace with process.env.NEXT_PUBLIC_SUPABASE_URL in Vercel
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwY2dicGRhY3JvcWZrd25yanRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwMjIwMDIsImV4cCI6MjA5MzU5ODAwMn0.eNmhFoA4r0Qoha8PctiwmTTQ-UFJtGKK_zdGdjEKpKA'; // Replace with process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const SUPABASE_URL = 'https://ghrkcyqtnncshpoqxkmj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_8GodJfaZr0uk_1vw1-uNYg_si5p74xN';
 
 let supabase = null;
 
