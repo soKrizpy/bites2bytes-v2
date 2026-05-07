@@ -8,6 +8,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnText = submitBtn.querySelector('.btn-text');
     const spinner = submitBtn.querySelector('.spinner');
 
+    function afterNextPaint(callback) {
+        requestAnimationFrame(() => {
+            setTimeout(callback, 0);
+        });
+    }
+
+    function setLoadingState(isLoading) {
+        submitBtn.disabled = isLoading;
+        submitBtn.setAttribute('aria-busy', String(isLoading));
+        btnText.classList.toggle('hidden', isLoading);
+        spinner.classList.toggle('hidden', !isLoading);
+    }
+
+    function showRedirectOverlay(role, redirectUrl) {
+        afterNextPaint(() => {
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay fade-in';
+            overlay.innerHTML = `
+                <div class="glass" style="width: 300px; padding: 2rem; border-radius: 20px; display:flex; flex-direction:column; align-items:center; background: var(--glass-bg);">
+                    <div class="spinner mb-20"></div>
+                    <p class="text-sm" style="color: var(--text-muted);">Mengarahkan ke Dasbor ${role}...</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            setTimeout(() => window.location.href = redirectUrl, 1200);
+        });
+    }
+
     // Toggle MPIN visibility
     toggleMpinBtn.addEventListener('click', () => {
         const type = mpinInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -45,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Handle Login Submission
-    loginForm.addEventListener('submit', async (e) => {
+    loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
         // Reset Error
@@ -55,10 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const mpin = mpinInput.value.trim();
 
         // UI Loading State
-        submitBtn.disabled = true;
-        btnText.classList.add('hidden');
-        spinner.classList.remove('hidden');
+        setLoadingState(true);
 
+        afterNextPaint(() => runLogin(username, mpin));
+    });
+
+    async function runLogin(username, mpin) {
         try {
             console.log("Attempting login for:", username);
             const email = username.includes('@') ? username : `${username}@bites2bytes.com`;
@@ -121,16 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Transition Loading
             setTimeout(() => {
-                const overlay = document.createElement('div');
-                overlay.className = 'loading-overlay fade-in';
-                overlay.innerHTML = `
-                    <div class="glass" style="width: 300px; padding: 2rem; border-radius: 20px; display:flex; flex-direction:column; align-items:center; background: var(--glass-bg);">
-                        <div class="spinner mb-20"></div>
-                        <p class="text-sm" style="color: var(--text-muted);">Mengarahkan ke Dasbor ${profile.role}...</p>
-                    </div>
-                `;
-                document.body.appendChild(overlay);
-                setTimeout(() => window.location.href = redirectUrl, 1200);
+                showRedirectOverlay(profile.role, redirectUrl);
             }, 500);
 
         } catch (error) {
@@ -150,13 +171,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorAlert.classList.remove('hidden');
             }
 
-            submitBtn.disabled = false;
-            btnText.classList.remove('hidden');
-            spinner.classList.add('hidden');
+            setLoadingState(false);
             mpinInput.value = '';
             mpinInput.focus();
         }
-    });
+    }
 
     // ---- Developer Seeding Tools ---- //
     const seedBtn = document.getElementById('seed-admin-btn');
