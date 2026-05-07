@@ -7,6 +7,8 @@ CREATE TABLE profiles (
     full_name TEXT,
     role TEXT CHECK (role IN ('admin', 'teacher', 'student')),
     extra TEXT,
+    bio TEXT,
+    photo_url TEXT,
     mpin TEXT, -- Stored as text for now, should be hashed in production
     honorarium INTEGER DEFAULT 75000,
     sessions_completed INTEGER DEFAULT 0,

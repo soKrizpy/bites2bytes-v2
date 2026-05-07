@@ -2,6 +2,11 @@
 -- Run this in Supabase Dashboard > SQL Editor for project ghrkcyqtnncshpoqxkmj.
 -- It fixes student signup, progress creation, and admin profile management.
 
+-- Profile biodata fields used by the account settings modal.
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS bio TEXT,
+ADD COLUMN IF NOT EXISTS photo_url TEXT;
+
 -- Helpers
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN

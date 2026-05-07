@@ -30,13 +30,15 @@ window.animateCount = animateCount;
 
 function getCurrentUserProfile() {
     const rawUser = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
+    const displayName = rawUser.name || rawUser.full_name || 'User';
     return {
         ...rawUser,
         photoUrl: rawUser.photoUrl || rawUser.photo_url || '',
         photo_url: rawUser.photo_url || rawUser.photoUrl || '',
         bio: rawUser.bio || '',
         extra: rawUser.extra || '',
-        name: rawUser.name || 'User'
+        name: displayName,
+        full_name: rawUser.full_name || displayName
     };
 }
 
@@ -56,6 +58,7 @@ function persistProfileLocally(profile) {
             id: normalized.id,
             wa_number: normalized.wa_number || normalized.id,
             name: normalized.name,
+            full_name: normalized.full_name || normalized.name,
             role: normalized.role,
             extra: normalized.extra,
             mpin: normalized.mpin || '123456',
@@ -78,6 +81,7 @@ function persistProfileLocally(profile) {
             ...user,
             id: normalized.wa_number || normalized.id,
             name: normalized.name,
+            full_name: normalized.full_name || normalized.name,
             role: normalized.role,
             extra: normalized.extra,
             mpin: normalized.mpin || user.mpin || '',
@@ -92,6 +96,7 @@ function persistProfileLocally(profile) {
         nextUsers.push({
             id: normalized.wa_number || normalized.id,
             name: normalized.name,
+            full_name: normalized.full_name || normalized.name,
             role: normalized.role,
             extra: normalized.extra,
             mpin: normalized.mpin || '',
@@ -370,21 +375,35 @@ async function saveAccountSettings() {
     let currentUser = getCurrentUserProfile();
 
     try {
-        const { error } = await window.B2B_Supabase.client
+        const profileUpdates = {
+            full_name: name,
+            photo_url: photoUrl,
+            bio,
+            extra
+        };
+
+        let { error } = await window.B2B_Supabase.client
             .from('profiles')
-            .update({
-                name,
-                photo_url: photoUrl,
-                bio,
-                extra
-            })
+            .update(profileUpdates)
             .eq('id', currentUser.id);
+
+        if (error && (error.code === 'PGRST204' || /bio|photo_url|schema cache/i.test(error.message || ''))) {
+            const retry = await window.B2B_Supabase.client
+                .from('profiles')
+                .update({
+                    full_name: name,
+                    extra
+                })
+                .eq('id', currentUser.id);
+            error = retry.error;
+        }
 
         if (error) throw error;
 
         currentUser = {
             ...currentUser,
             name,
+            full_name: name,
             photoUrl,
             photo_url: photoUrl,
             bio,
