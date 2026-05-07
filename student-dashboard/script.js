@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================
     const userSession = JSON.parse(localStorage.getItem('b2b_currentUser') || '{}');
     const studentId = userSession.id || '62812345678';
-    
+
     if (window.updateProfileUI) window.updateProfileUI();
 
 
@@ -100,10 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (xpTextEl) xpTextEl.textContent = `${xpInLevel}/1000 XP`;
             if (xpBarEl) xpBarEl.style.width = `${xpPct}%`;
 
-            const attendanceRate = sessions.length > 0 
-                ? Math.round((sessions.filter(s => s.attendance === 'hadir').length / sessions.length) * 100) 
+            const attendanceRate = sessions.length > 0
+                ? Math.round((sessions.filter(s => s.attendance === 'hadir').length / sessions.length) * 100)
                 : 0;
-            
+
             const attendanceEl = document.getElementById('ana-attendance');
             if (attendanceEl) attendanceEl.textContent = `${attendanceRate}%`;
 
@@ -186,85 +186,114 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderLearningPath(myEnrollments, modules, mySessions, progress) {
+    async function renderLearningPath() {
         const container = document.getElementById('learning-path-container');
         if (!container) return;
 
-        if (myEnrollments.length === 0) {
-            container.innerHTML = `<div class="text-muted text-sm">Belum ada enrollment aktif. Hubungi admin untuk mulai belajar.</div>`;
-            return;
-        }
+        try {
+            const { data: myEnrollments, error: enrError } = await window.B2B_Supabase.client
+                .from('enrollments')
+                .select('*, modules(*), teacher:teacher_id(full_name)')
+                .eq('student_id', studentId)
+                .eq('status', 'active');
 
-        container.innerHTML = myEnrollments.map((enr, idx) => {
-            const mod = modules.find(m => m.id === enr.moduleId);
-            const enrSessions = mySessions.filter(s => s.enrollmentId === enr.id || s.moduleId === enr.moduleId);
-            const completedTopics = mod ? mod.topics.filter(t =>
-                (progress.completedTopics || []).includes(`${mod.id}|${t.id}`)
-            ).length : 0;
-            const totalTopics = mod ? mod.topics.length : 0;
-            const pct = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-            const isActive = idx === 0;
-            const isDone = pct === 100;
-            const statusClass = isDone ? 'lp-done' : isActive ? 'lp-active' : 'lp-pending';
-            const statusIcon = isDone ? '✅' : isActive ? '🔵' : '🔒';
-            const statusLabel = isDone ? 'Selesai' : isActive ? 'Sedang Berjalan' : 'Akan Datang';
+            const { data: mySessions, error: sesError } = await window.B2B_Supabase.client
+                .from('sessions')
+                .select('*')
+                .eq('student_id', studentId);
 
-            return `
-                <div class="lp-node ${statusClass}">
-                    <div class="lp-icon">${statusIcon}</div>
-                    <div class="lp-content">
-                        <div class="lp-title fw-bold">${enr.moduleName}</div>
-                        <div class="lp-meta text-xs text-muted">Guru: ${enr.teacherName} · ${enrSessions.length} sesi tercatat</div>
-                        <div class="lp-progress-wrap">
-                            <div class="lp-progress-bar">
-                                <div class="lp-progress-fill" style="width:${pct}%"></div>
+            const { data: progress, error: progError } = await window.B2B_Supabase.client
+                .from('progress')
+                .select('*')
+                .eq('student_id', studentId)
+                .single();
+
+            if (enrError) throw enrError;
+            if (sesError) throw sesError;
+            if (progError && progError.code !== 'PGRST116') throw progError;
+
+            if (!myEnrollments || myEnrollments.length === 0) {
+                container.innerHTML = `<div class="text-muted text-sm">Belum ada enrollment aktif. Hubungi admin untuk mulai belajar.</div>`;
+                return;
+            }
+
+            const completed = progress?.completed_topics || [];
+
+            container.innerHTML = myEnrollments.map((enr, idx) => {
+                const mod = enr.modules;
+                const topics = mod?.topics || [];
+                const enrSessions = (mySessions || []).filter(s => s.enrollment_id === enr.id || s.module_id === enr.module_id);
+                const completedTopics = topics.filter(t => completed.includes(`${mod.id}|${t.id}`)).length;
+                const totalTopics = topics.length;
+                const pct = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+                const isActive = idx === 0;
+                const isDone = pct === 100;
+                const statusClass = isDone ? 'lp-done' : isActive ? 'lp-active' : 'lp-pending';
+                const statusIcon = isDone ? '?' : isActive ? '??' : '??';
+                const statusLabel = isDone ? 'Selesai' : isActive ? 'Sedang Berjalan' : 'Akan Datang';
+
+                return `
+                    <div class="lp-node ${statusClass}">
+                        <div class="lp-icon">${statusIcon}</div>
+                        <div class="lp-content">
+                            <div class="lp-title fw-bold">${mod?.title || 'Modul'}</div>
+                            <div class="lp-meta text-xs text-muted">Guru: ${enr.teacher?.full_name || 'Guru'} - ${enrSessions.length} sesi tercatat</div>
+                            <div class="lp-progress-wrap">
+                                <div class="lp-progress-bar">
+                                    <div class="lp-progress-fill" style="width:${pct}%"></div>
+                                </div>
+                                <span class="lp-pct text-xs">${pct}%</span>
                             </div>
-                            <span class="lp-pct text-xs">${pct}%</span>
+                            <span class="lp-badge ${statusClass}-badge">${statusLabel}</span>
                         </div>
-                        <span class="lp-badge ${statusClass}-badge">${statusLabel}</span>
-                    </div>
-                    ${idx < myEnrollments.length - 1 ? '<div class="lp-connector"></div>' : ''}
-                </div>`;
-        }).join('');
+                        ${idx < myEnrollments.length - 1 ? '<div class="lp-connector"></div>' : ''}
+                    </div>`;
+            }).join('');
+        } catch (err) {
+            console.error("Learning path error:", err);
+            container.innerHTML = `<div class="text-muted text-sm">Learning path belum bisa dimuat.</div>`;
+        }
     }
 
     // ======================================================
     // SCHEDULE TAB — Upcoming & Past sessions
     // ======================================================
-    function renderScheduleTab() {
-        const schedules = JSON.parse(localStorage.getItem('b2b_schedules') || '{}');
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        const upcoming = [], past = [];
-
-        Object.entries(schedules).forEach(([dateStr, events]) => {
-            const d = new Date(dateStr);
-            events.forEach(ev => {
-                // Filter jadwal hanya untuk siswa yang bersangkutan
-                if (ev.studentId && ev.studentId !== studentId) return;
-                
-                const item = { date: dateStr, dateObj: d, ...ev };
-                if (d >= today) upcoming.push(item);
-                else past.push(item);
-            });
-        });
-
-        upcoming.sort((a, b) => a.dateObj - b.dateObj);
-        past.sort((a, b) => b.dateObj - a.dateObj);
-
+    async function renderScheduleTab() {
         const upcomingEl = document.getElementById('upcoming-sessions-list');
         const pastEl = document.getElementById('past-sessions-list');
+        const todayStr = new Date().toISOString().split('T')[0];
 
-        upcomingEl.innerHTML = upcoming.length === 0
-            ? `<p class="text-muted text-sm">Belum ada jadwal mendatang.</p>`
-            : upcoming.map(ev => sessionCard(ev, true)).join('');
+        try {
+            const { data: upcoming, error: upError } = await window.B2B_Supabase.client
+                .from('schedules')
+                .select('*')
+                .eq('student_id', studentId)
+                .gte('date', todayStr)
+                .order('date', { ascending: true });
 
-        pastEl.innerHTML = past.length === 0
-            ? `<p class="text-muted text-sm">Belum ada riwayat sesi.</p>`
-            : past.slice(0, 5).map(ev => sessionCard(ev, false)).join('');
+            const { data: past, error: pastError } = await window.B2B_Supabase.client
+                .from('sessions')
+                .select('*')
+                .eq('student_id', studentId)
+                .order('date', { descending: true });
+
+            if (upError) throw upError;
+            if (pastError) throw pastError;
+
+            upcomingEl.innerHTML = upcoming.length === 0
+                ? `<p class="text-muted text-sm">Belum ada jadwal mendatang.</p>`
+                : upcoming.map(ev => sessionCard(ev, true)).join('');
+
+            pastEl.innerHTML = past.length === 0
+                ? `<p class="text-muted text-sm">Belum ada riwayat sesi.</p>`
+                : past.slice(0, 5).map(ev => sessionCard(ev, false)).join('');
+        } catch (err) {
+            console.error("Schedule tab error:", err);
+        }
     }
 
     function sessionCard(ev, isUpcoming) {
-        const d = ev.dateObj;
+        const d = new Date(ev.date);
         const dateStr = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
         return `
             <div class="session-card glass ${isUpcoming ? 'session-upcoming' : 'session-past'}">
@@ -273,12 +302,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="session-month">${d.toLocaleDateString('id-ID', { month: 'short' }).toUpperCase()}</div>
                 </div>
                 <div class="session-info">
-                    <div class="fw-bold">${ev.student || 'Sesi Kelas'}</div>
-                    <div class="text-xs text-muted">${dateStr} · ${ev.time} WIB</div>
-                    ${ev.link ? `<a href="${ev.link}" target="_blank" class="zoom-link-chip">🔗 ${ev.link.substring(0, 40)}...</a>` : ''}
+                    <div class="fw-bold">${isUpcoming ? 'Sesi Kelas' : (ev.topic || 'Sesi Selesai')}</div>
+                    <div class="text-xs text-muted">${dateStr} · ${ev.time || ''} WIB</div>
+                    ${ev.zoom_link ? `<a href="${ev.zoom_link}" target="_blank" class="zoom-link-chip">🔗 Zoom Link</a>` : ''}
                 </div>
-                ${isUpcoming && ev.link
-                    ? `<a href="${ev.link}" target="_blank" class="btn btn-primary btn-sm" style="flex-shrink:0">Join Zoom</a>`
+                ${isUpcoming && ev.zoom_link
+                    ? `<a href="${ev.zoom_link}" target="_blank" class="btn btn-primary btn-sm" style="flex-shrink:0">Join Zoom</a>`
                     : isUpcoming ? `<span class="badge badge-warning" style="flex-shrink:0">Menunggu Link</span>` : `<span class="badge badge-muted" style="flex-shrink:0">Selesai</span>`}
             </div>`;
     }
@@ -293,64 +322,62 @@ document.addEventListener('DOMContentLoaded', () => {
         return progress.xp || 0;
     }
 
-    function renderLeaderboard() {
-        const allUsers = JSON.parse(localStorage.getItem('b2b_users') || '[]');
-        const students = allUsers.filter(u => u.role === 'student');
-        
-        const rankedData = students.map(s => ({
-            ...s,
-            xp: calculateStudentXP(s.id),
-            badges: (parseInt(s.id.slice(-1)) % 3) + 1
-        })).sort((a, b) => b.xp - a.xp);
+    async function renderLeaderboard() {
+        try {
+            const { data: rankedData, error } = await window.B2B_Supabase.client
+                .from('progress')
+                .select('student_id, xp, profiles:student_id(full_name)')
+                .order('xp', { ascending: false });
 
-        const podiumEl = document.getElementById('leaderboard-podium');
-        if (podiumEl) {
-            const top3 = rankedData.slice(0, 3);
-            podiumEl.innerHTML = `
-                <div class="podium-rank second animate-fade-up" style="animation-delay: 0.2s">
-                    <div class="podium-avatar">${top3[1]?.name[0] || '?'}</div>
-                    <div class="podium-name">${top3[1]?.name || '-'}</div>
-                    <div class="podium-xp">${(top3[1]?.xp || 0).toLocaleString()} XP</div>
-                    <div class="podium-step">2</div>
-                </div>
-                <div class="podium-rank first animate-fade-up">
-                    <div class="crown">👑</div>
-                    <div class="podium-avatar" style="border-color: #FFD700">${top3[0]?.name[0] || '?'}</div>
-                    <div class="podium-name">${top3[0]?.name || '-'}</div>
-                    <div class="podium-xp" style="color: #FFD700">${(top3[0]?.xp || 0).toLocaleString()} XP</div>
-                    <div class="podium-step">1</div>
-                </div>
-                <div class="podium-rank third animate-fade-up" style="animation-delay: 0.4s">
-                    <div class="podium-avatar">${top3[2]?.name[0] || '?'}</div>
-                    <div class="podium-name">${top3[2]?.name || '-'}</div>
-                    <div class="podium-xp">${(top3[2]?.xp || 0).toLocaleString()} XP</div>
-                    <div class="podium-step">3</div>
-                </div>
-            `;
-        }
+            if (error) throw error;
 
-        const tbody = document.getElementById('leaderboard-tbody');
-        if (tbody) {
-            tbody.innerHTML = rankedData.map((s, idx) => `
-                <tr class="${s.id === studentId ? 'row-highlight' : ''}">
-                    <td><span class="rank-circle ${idx < 3 ? 'rank-' + (idx + 1) : ''}">${idx + 1}</span></td>
-                    <td>
-                        <div class="flex items-center gap-10">
-                            <div class="avatar-xs" style="width:30px; height:30px; border-radius:50%; background:var(--border-color); display:flex; align-items:center; justify-content:center; font-size:12px;">${s.name[0]}</div>
-                            <div>
-                                <div class="fw-bold text-sm">${s.name} ${s.id === studentId ? '⭐' : ''}</div>
-                                <div class="text-xs text-muted">${s.extra || 'Siswa'}</div>
+            const podiumEl = document.getElementById('leaderboard-podium');
+            if (podiumEl) {
+                const top3 = rankedData.slice(0, 3);
+                podiumEl.innerHTML = `
+                    <div class="podium-rank second animate-fade-up" style="animation-delay: 0.2s">
+                        <div class="podium-avatar">${top3[1]?.profiles?.full_name[0] || '?'}</div>
+                        <div class="podium-name">${top3[1]?.profiles?.full_name || '-'}</div>
+                        <div class="podium-xp">${(top3[1]?.xp || 0).toLocaleString()} XP</div>
+                        <div class="podium-step">2</div>
+                    </div>
+                    <div class="podium-rank first animate-fade-up">
+                        <div class="crown">👑</div>
+                        <div class="podium-avatar" style="border-color: #FFD700">${top3[0]?.profiles?.full_name[0] || '?'}</div>
+                        <div class="podium-name">${top3[0]?.profiles?.full_name || '-'}</div>
+                        <div class="podium-xp" style="color: #FFD700">${(top3[0]?.xp || 0).toLocaleString()} XP</div>
+                        <div class="podium-step">1</div>
+                    </div>
+                    <div class="podium-rank third animate-fade-up" style="animation-delay: 0.4s">
+                        <div class="podium-avatar">${top3[2]?.profiles?.full_name[0] || '?'}</div>
+                        <div class="podium-name">${top3[2]?.profiles?.full_name || '-'}</div>
+                        <div class="podium-xp">${(top3[2]?.xp || 0).toLocaleString()} XP</div>
+                        <div class="podium-step">3</div>
+                    </div>
+                `;
+            }
+
+            const tbody = document.getElementById('leaderboard-tbody');
+            if (tbody) {
+                tbody.innerHTML = rankedData.map((s, idx) => `
+                    <tr class="${s.student_id === studentId ? 'row-highlight' : ''}">
+                        <td><span class="rank-circle ${idx < 3 ? 'rank-' + (idx + 1) : ''}">${idx + 1}</span></td>
+                        <td>
+                            <div class="flex items-center gap-10">
+                                <div class="avatar-xs" style="width:30px; height:30px; border-radius:50%; background:var(--border-color); display:flex; align-items:center; justify-content:center; font-size:12px;">${s.profiles?.full_name[0] || '?'}</div>
+                                <div>
+                                    <div class="fw-bold text-sm">${s.profiles?.full_name || 'Siswa'} ${s.student_id === studentId ? '⭐' : ''}</div>
+                                    <div class="text-xs text-muted">Siswa Aktif</div>
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="badges-mini-list">
-                            ${Array(s.badges).fill('🏅').join('')}
-                        </div>
-                    </td>
-                    <td><span class="fw-bold text-primary">${s.xp.toLocaleString()} XP</span></td>
-                </tr>
-            `).join('');
+                        </td>
+                        <td>🏅</td>
+                        <td><span class="fw-bold text-primary">${s.xp.toLocaleString()} XP</span></td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error("Leaderboard error:", err);
         }
     }
 
@@ -360,14 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStreak() {
         const today = new Date().toISOString().split('T')[0];
         const streakData = JSON.parse(localStorage.getItem(`b2b_streak_${studentId}`) || '{"count": 0, "lastDate": ""}');
-        
+
         if (streakData.lastDate === today) {
             // Already logged today
         } else {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayStr = yesterday.toISOString().split('T')[0];
-            
+
             if (streakData.lastDate === yesterdayStr) {
                 streakData.count += 1;
             } else {
@@ -376,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             streakData.lastDate = today;
             localStorage.setItem(`b2b_streak_${studentId}`, JSON.stringify(streakData));
         }
-        
+
         const streakEl = document.getElementById('student-streak');
         if (streakEl) {
             streakEl.textContent = `🔥 ${streakData.count} Hari`;
@@ -386,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDailyMissions() {
         const today = new Date().toISOString().split('T')[0];
         let missions = JSON.parse(localStorage.getItem(`b2b_missions_${studentId}_${today}`));
-        
+
         if (!missions) {
             missions = [
                 { id: 'm1', text: 'Cek jadwal mentoring hari ini', xp: 50, done: false },
@@ -401,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (listEl) {
             const doneCount = missions.filter(m => m.done).length;
             progressEl.textContent = `${doneCount}/${missions.length}`;
-            
+
             listEl.innerHTML = missions.map(m => `
                 <div class="mission-item ${m.done ? 'done' : ''}" onclick="completeMission('${m.id}')">
                     <div class="mission-check">${m.done ? '✅' : '⭕'}</div>
@@ -418,13 +445,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const today = new Date().toISOString().split('T')[0];
         let missions = JSON.parse(localStorage.getItem(`b2b_missions_${studentId}_${today}`));
         const mission = missions.find(m => m.id === missionId);
-        
+
         if (mission && !mission.done) {
             mission.done = true;
             localStorage.setItem(`b2b_missions_${studentId}_${today}`, JSON.stringify(missions));
             showToast(`Misi Selesai! +${mission.xp} XP didapat.`, 'success');
             // Simulasi tambah XP instan
-            initDashboard(); 
+            initDashboard();
         }
     };
 
@@ -517,65 +544,75 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================
     // MODUL BELAJAR TAB
     // ======================================================
-    function renderStudentModules() {
+    async function renderStudentModules() {
         const grid = document.getElementById('student-modules-grid');
         if (!grid) return;
-        const allModules = JSON.parse(localStorage.getItem('b2b_modules') || '[]');
-        const enrollments = JSON.parse(localStorage.getItem('b2b_enrollments') || '[]');
-        const globalProgress = JSON.parse(localStorage.getItem('b2b_progress') || '{}');
-        const progress = globalProgress[studentId] || { completedTopics: [], quizScores: {}, badges: [], certificates: [], xp: 0 };
 
-        const myActiveEnrollments = enrollments.filter(e => e.studentId === studentId && e.status === 'active');
-        const myModuleIds = myActiveEnrollments.map(e => e.moduleId);
-        const myModules = allModules.filter(m => myModuleIds.includes(m.id));
+        try {
+            const { data: myEnrollments, error: enrError } = await window.B2B_Supabase.client
+                .from('enrollments')
+                .select('*, modules(*)')
+                .eq('student_id', studentId);
 
-        if (myModules.length === 0) {
-            grid.innerHTML = '<div class="text-muted">Belum ada modul yang ditugaskan kepadamu.</div>';
-            return;
-        }
+            const { data: progress, error: progError } = await window.B2B_Supabase.client
+                .from('progress')
+                .select('*')
+                .eq('student_id', studentId)
+                .single();
 
-        grid.innerHTML = myModules.map(mod => {
-            const completed = mod.topics.filter(t =>
-                (progress.completedTopics || []).includes(`${mod.id}|${t.id}`)
-            ).length;
-            const pct = mod.topics.length > 0 ? Math.round((completed / mod.topics.length) * 100) : 0;
+            if (enrError) throw enrError;
+            if (progError && progError.code !== 'PGRST116') throw progError;
 
-            return `
-                <div class="module-card glass">
-                    <div class="module-banner" style="background:linear-gradient(135deg, var(--primary-color), var(--accent-color));">
-                        <div class="badge-mini">Terdaftar</div>
-                    </div>
-                    <div class="module-info">
-                        <h3 class="fw-bold">${mod.title}</h3>
-                        <p class="text-xs text-muted mt-5">${mod.summary}</p>
-                        <div class="progress-container mt-15">
-                            <div class="flex-between text-xs mb-5">
-                                <span>Progress</span><span>${pct}%</span>
-                            </div>
-                            <div class="progress-bar-sm">
-                                <div class="progress-fill" style="width:${pct}%"></div>
-                            </div>
+            if (!myEnrollments || myEnrollments.length === 0) {
+                grid.innerHTML = '<div class="text-muted">Belum ada modul yang ditugaskan kepadamu.</div>';
+                return;
+            }
+
+            grid.innerHTML = myEnrollments.map(enr => {
+                const mod = enr.modules;
+                const completedTopics = progress?.completed_topics || [];
+                const completedCount = (mod.topics || []).filter(t => completedTopics.includes(`${mod.id}|${t.id}`)).length;
+                const totalTopics = (mod.topics || []).length;
+                const pct = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
+
+                return `
+                    <div class="module-card glass">
+                        <div class="module-banner" style="background:linear-gradient(135deg, var(--primary-color), var(--accent-color));">
+                            <div class="badge-mini">Terdaftar</div>
                         </div>
-                        <div class="module-topics mt-15">
-                            <details>
-                                <summary class="text-xs fw-bold cursor-pointer">Daftar Topik (${mod.topics.length})</summary>
-                                <div class="topic-list mt-10">
-                                    ${mod.topics.map(t => {
-                                        const isDone = (progress.completedTopics || []).includes(`${mod.id}|${t.id}`);
-                                        const score = (progress.quizScores || {})[`${mod.id}|${t.id}`];
-                                        return `<div class="topic-item flex-between p-5 text-xs ${isDone ? 'text-success' : ''}">
-                                            <span>${isDone ? '✅' : '📖'} ${t.title}</span>
-                                            <button class="btn btn-xs btn-outline" onclick="openQuiz('${mod.id}', '${t.id}')">
-                                                ${isDone ? `Kuis: ${score}%` : 'Kerjakan Kuis'}
-                                            </button>
-                                        </div>`;
-                                    }).join('')}
+                        <div class="module-info">
+                            <h3 class="fw-bold">${mod.title}</h3>
+                            <p class="text-xs text-muted mt-5">${mod.summary}</p>
+                            <div class="progress-container mt-15">
+                                <div class="flex-between text-xs mb-5">
+                                    <span>Progress</span><span>${pct}%</span>
                                 </div>
-                            </details>
+                                <div class="progress-bar-sm">
+                                    <div class="progress-fill" style="width:${pct}%"></div>
+                                </div>
+                            </div>
+                            <div class="module-topics mt-15">
+                                <details>
+                                    <summary class="text-xs fw-bold cursor-pointer">Daftar Topik (${totalTopics})</summary>
+                                    <div class="topic-list mt-10">
+                                        ${(mod.topics || []).map(t => {
+                                            const isDone = completedTopics.includes(`${mod.id}|${t.id}`);
+                                            return `<div class="topic-item flex-between p-5 text-xs ${isDone ? 'text-success' : ''}">
+                                                <span>${isDone ? '✅' : '📖'} ${t.title}</span>
+                                                <button class="btn btn-xs btn-outline" onclick="openQuiz('${mod.id}', '${t.id}')">
+                                                    ${isDone ? `Lulus` : 'Kerjakan Kuis'}
+                                                </button>
+                                            </div>`;
+                                        }).join('')}
+                                    </div>
+                                </details>
+                            </div>
                         </div>
-                    </div>
-                </div>`;
-        }).join('');
+                    </div>`;
+            }).join('');
+        } catch (err) {
+            console.error("Modules error:", err);
+        }
     }
 
     // ======================================================
@@ -623,13 +660,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const feedbackEl = document.getElementById(`feedback-${qIdx}`);
         const container = document.getElementById(`q-container-${qIdx}`);
         const options = container.querySelectorAll('input[type="radio"]');
-        
+
         // Disable all options for this question
         options.forEach(opt => opt.disabled = true);
 
         const isCorrect = selectedIdx === correctIdx;
         const selectedLabel = document.getElementById(`opt-label-${qIdx}-${selectedIdx}`);
-        
+
         // Visual Feedback
         feedbackEl.classList.remove('hidden');
         if (isCorrect) {
@@ -666,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const score = Math.round((correctCount / totalQ) * 100);
         const globalProgress = JSON.parse(localStorage.getItem('b2b_progress') || '{}');
         const progress = globalProgress[studentId] || { completedTopics: [], quizScores: {}, badges: [], certificates: [], xp: 0 };
-        
+
         const key = `${modId}|${topId}`;
         progress.quizScores[key] = Math.max(score, progress.quizScores[key] || 0); // Keep highest score
 
@@ -683,10 +720,10 @@ document.addEventListener('DOMContentLoaded', () => {
         globalProgress[studentId] = progress;
         localStorage.setItem('b2b_progress', JSON.stringify(globalProgress));
 
-        setTimeout(() => { 
-            closeQuiz(); 
-            renderStudentModules(); 
-            initDashboard(); 
+        setTimeout(() => {
+            closeQuiz();
+            renderStudentModules();
+            initDashboard();
         }, 2000);
     };
 

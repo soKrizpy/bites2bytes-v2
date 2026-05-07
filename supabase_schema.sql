@@ -4,7 +4,7 @@
 CREATE TABLE profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     wa_number TEXT UNIQUE, -- Original ID in the app
-    name TEXT,
+    full_name TEXT,
     role TEXT CHECK (role IN ('admin', 'teacher', 'student')),
     extra TEXT,
     mpin TEXT, -- Stored as text for now, should be hashed in production
@@ -31,7 +31,8 @@ CREATE TABLE enrollments (
     teacher_id UUID REFERENCES profiles(id),
     module_id UUID REFERENCES modules(id),
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
-    enrolled_at DATE DEFAULT CURRENT_DATE
+    enrolled_at DATE DEFAULT CURRENT_DATE,
+    UNIQUE (student_id, module_id)
 );
 
 -- Sessions (Logs)
@@ -77,7 +78,7 @@ CREATE TABLE schedules (
     time TEXT,
     student_id UUID REFERENCES profiles(id),
     teacher_id UUID REFERENCES profiles(id),
-    link TEXT, -- Zoom/GMeet link
+    zoom_link TEXT, -- Zoom/GMeet link
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -105,10 +106,10 @@ CREATE TRIGGER on_student_created
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.profiles (id, name, role, wa_number, mpin)
+    INSERT INTO public.profiles (id, full_name, role, wa_number, mpin)
     VALUES (
-        NEW.id, 
-        COALESCE(NEW.raw_user_meta_data->>'name', 'User Baru'), 
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'User Baru'),
         COALESCE(NEW.raw_user_meta_data->>'role', 'student'),
         COALESCE(NEW.raw_user_meta_data->>'wa_number', NEW.email), -- Fallback to email
         '123456' -- Default MPIN
@@ -127,7 +128,7 @@ CREATE OR REPLACE FUNCTION update_xp_on_session()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.attendance = 'hadir' AND NEW.score >= 80 THEN
-        UPDATE progress 
+        UPDATE progress
         SET xp = xp + 250
         WHERE student_id = NEW.student_id;
     END IF;
@@ -148,6 +149,7 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public profiles are viewable by everyone" ON profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Enable insert for authenticated users only" ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Development profile management" ON profiles FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE modules ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Modules are viewable by everyone" ON modules FOR SELECT USING (true);
@@ -156,6 +158,8 @@ CREATE POLICY "Admins/Teachers can manage modules" ON modules FOR ALL USING (tru
 ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Enrollments are viewable by everyone" ON enrollments FOR SELECT USING (true);
 CREATE POLICY "Management can insert enrollments" ON enrollments FOR INSERT WITH CHECK (true);
+CREATE POLICY "Management can update enrollments" ON enrollments FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Management can delete enrollments" ON enrollments FOR DELETE USING (true);
 
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Sessions are viewable by everyone" ON sessions FOR SELECT USING (true);
@@ -172,4 +176,3 @@ CREATE POLICY "Admins can insert broadcasts" ON broadcasts FOR INSERT WITH CHECK
 ALTER TABLE schedules ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Schedules viewable by everyone" ON schedules FOR SELECT USING (true);
 CREATE POLICY "Management can insert schedules" ON schedules FOR INSERT WITH CHECK (true);
-

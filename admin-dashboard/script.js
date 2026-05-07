@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: leaderboard, error } = await window.B2B_Supabase.client
                 .from('progress')
-                .select('xp, profiles:student_id(name)')
+                .select('xp, profiles:student_id(full_name)')
                 .order('xp', { ascending: false })
                 .limit(5);
 
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="text-align:center">
                         ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                     </td>
-                    <td class="fw-bold">${st.profiles?.name || 'Siswa'}</td>
+                    <td class="fw-bold">${st.profiles?.full_name || 'Siswa'}</td>
                     <td style="color:var(--primary-color); font-weight:bold">${st.xp} XP</td>
                     <td>Aktif Belajar</td>
                 </tr>
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-user-original-id').value = user.id;
         
         document.getElementById('new-user-id').value = user.id;
-        document.getElementById('new-user-name').value = user.name;
+        document.getElementById('new-user-name').value = user.full_name;
         document.getElementById('new-user-role').value = user.role;
         document.getElementById('new-user-mpin').value = user.mpin;
 
@@ -510,8 +510,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: enrollments, error } = await window.B2B_Supabase.client
                 .from('enrollments')
-                .select('*, student:student_id(name), teacher:teacher_id(name), module:module_id(title)')
-                .order('created_at', { ascending: false });
+                .select('*, student:student_id(full_name), teacher:teacher_id(full_name), module:module_id(title)')
+                .order('enrolled_at', { ascending: false });
 
             if (error) throw error;
 
@@ -524,19 +524,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="fade-in">
                     <td>
                         <div class="flex items-center gap-2">
-                            <div class="avatar" style="width:30px; height:30px; font-size:10px; background:var(--primary-color)">${enr.student?.name ? enr.student.name.charAt(0) : '?'}</div>
+                            <div class="avatar" style="width:30px; height:30px; font-size:10px; background:var(--primary-color)">${enr.student?.full_name ? enr.student.name.charAt(0) : '?'}</div>
                             <div>
-                                <div class="fw-bold text-sm">${enr.student?.name || 'Siswa'}</div>
+                                <div class="fw-bold text-sm">${enr.student?.full_name || 'Siswa'}</div>
                                 <div class="text-xs text-muted">${enr.student_id}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div class="fw-bold text-sm">${enr.teacher?.name || 'Guru'}</div>
+                        <div class="fw-bold text-sm">${enr.teacher?.full_name || 'Guru'}</div>
                         <div class="text-xs text-muted">${enr.teacher_id}</div>
                     </td>
                     <td><span class="badge badge-primary">${enr.module?.title || 'Modul'}</span></td>
-                    <td class="text-xs text-muted">${formatDate(enr.created_at)}</td>
+                    <td class="text-xs text-muted">${formatDate(enr.enrolled_at)}</td>
                     <td><span class="badge ${enr.status === 'active' ? 'badge-success' : 'badge-warning'}">${enr.status === 'active' ? '✅ Aktif' : '⏸ Nonaktif'}</span></td>
                     <td>
                         <button class="icon-btn-sm text-warning" title="Nonaktifkan" onclick="toggleEnrollmentStatus('${enr.id}', '${enr.status}')">⏸</button>
@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: sessions, error } = await window.B2B_Supabase.client
                 .from('sessions')
-                .select('*, profiles:student_id(name)')
+                .select('*, profiles:student_id(full_name)')
                 .order('date', { ascending: false });
 
             if (error) throw error;
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionsBody.innerHTML = sessions.map(ses => `
                         <tr class="fade-in">
                             <td class="text-xs text-muted">${formatDate(ses.date)}</td>
-                            <td class="fw-bold text-sm">${ses.profiles?.name || 'Siswa'}</td>
+                            <td class="fw-bold text-sm">${ses.profiles?.full_name || 'Siswa'}</td>
                             <td class="text-sm">${getTeacherName(ses.teacher_id)}</td>
                             <td class="text-xs text-muted">${ses.topic}</td>
                             <td>
@@ -804,7 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="fade-in">
                     <td><input type="checkbox" class="user-checkbox" data-id="${user.id}" data-role="${user.role}" onchange="updateBulkActionBar()"></td>
                     <td class="font-mono text-xs">${user.wa_number || user.id.substring(0,8)}</td>
-                    <td><div class="flex items-center gap-2"><div class="avatar" style="width:30px; height:30px; font-size:10px; background:var(--primary-color)">${user.name ? user.name.charAt(0) : '?'}</div><span class="fw-bold">${user.name || 'User Baru'}</span></div></td>
+                    <td><div class="flex items-center gap-2"><div class="avatar" style="width:30px; height:30px; font-size:10px; background:var(--primary-color)">${user.full_name ? user.full_name.charAt(0) : '?'}</div><span class="fw-bold">${user.full_name || 'User Baru'}</span></div></td>
                     <td><span class="badge ${user.role === 'student' ? 'badge-primary' : 'badge-success'}">${user.extra || (user.role === 'student' ? 'Basic' : 'Instruktur')}</span></td>
                     <td>
                         <div class="mpin-container">
@@ -991,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tSessions = sessions.filter(s => s.teacherId === teacher.id && s.attendance === 'hadir');
             const total = tSessions.length * (teacher.honorarium || 75000);
             return {
-                nama: teacher.name,
+                nama: teacher.full_name,
                 wa: teacher.id,
                 totalSesi: tSessions.length,
                 totalHonor: total

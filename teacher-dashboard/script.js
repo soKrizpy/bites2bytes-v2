@@ -254,14 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: myEnrollments, error } = await window.B2B_Supabase.client
                 .from('enrollments')
-                .select('*, profiles:student_id(name), module:module_id(title)')
+                .select('*, profiles:student_id(full_name), module:module_id(title)')
                 .eq('teacher_id', teacherId)
                 .eq('status', 'active');
 
             if (error) throw error;
             
             const options = myEnrollments.map(enr => {
-                const studentName = enr.profiles?.name || 'Siswa';
+                const studentName = enr.profiles?.full_name || 'Siswa';
                 return `<option value="${enr.student_id}" 
                     data-enrollment-id="${enr.id}"
                     data-name="${studentName}"
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data: todaySessions, error } = await window.B2B_Supabase.client
                 .from('schedules')
-                .select('*, profiles:student_id(name)')
+                .select('*, profiles:student_id(full_name)')
                 .eq('teacher_id', userSession.id)
                 .eq('date', todayStr)
                 .order('time', { ascending: true });
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="session-status-dot"></div>
                     </div>
                     <div class="session-main-info">
-                        <div class="session-student-name">${ses.profiles?.name || 'Siswa'}</div>
+                        <div class="session-student-name">${ses.profiles?.full_name || 'Siswa'}</div>
                         <div class="session-module-tag">Bites2Bytes Interactive Session</div>
                     </div>
                     <div class="session-actions">
