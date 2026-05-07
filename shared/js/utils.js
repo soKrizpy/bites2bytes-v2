@@ -493,7 +493,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.updateProfileUI) window.updateProfileUI();
 });
 
+function deferDropdownAction(callback) {
+    requestAnimationFrame(() => {
+        setTimeout(callback, 0);
+    });
+}
+
 document.addEventListener('click', function(event) {
+    const dropdownAction = event.target.closest('a.dropdown-item[data-dropdown-action]');
+    if (dropdownAction) {
+        event.preventDefault();
+
+        const action = dropdownAction.dataset.dropdownAction;
+        const dropdown = dropdownAction.closest('.dropdown-menu');
+        if (dropdown) dropdown.classList.add('hidden');
+
+        deferDropdownAction(() => {
+            if (action === 'settings' && window.openSettingsModal) {
+                window.openSettingsModal();
+            } else if (action === 'logout' && window.handleLogout) {
+                window.handleLogout();
+            }
+        });
+        return;
+    }
+
     const isDropdownTrigger = event.target.closest('.user-profile-trigger') || event.target.closest('.settings-gear-btn');
     const isDropdownMenu = event.target.closest('.dropdown-menu') || event.target.closest('.notif-dropdown');
 
