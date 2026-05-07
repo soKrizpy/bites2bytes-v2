@@ -103,14 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (profile.role === 'teacher') redirectUrl = '/teacher';
             if (profile.role === 'admin') redirectUrl = '/admin';
 
-            localStorage.setItem('b2b_currentUser', JSON.stringify({
+            const profileOverrides = JSON.parse(localStorage.getItem('b2b_profile_overrides') || '{}');
+            const profileOverride = profileOverrides[profile.id] || profileOverrides[profile.wa_number] || {};
+            const mergedProfile = {
                 ...profile,
-                name: profile.full_name || profile.name || 'User',
+                ...profileOverride,
+                name: profileOverride.name || profileOverride.full_name || profile.full_name || profile.name || 'User',
+                full_name: profileOverride.full_name || profileOverride.name || profile.full_name || profile.name || 'User',
                 loginTime: new Date().toISOString()
-            }));
+            };
+
+            localStorage.setItem('b2b_currentUser', JSON.stringify(mergedProfile));
 
             if (window.showToast) {
-                showToast(`Selamat datang, ${profile.full_name || profile.name || 'User'}!`, 'success');
+                showToast(`Selamat datang, ${mergedProfile.full_name || mergedProfile.name || 'User'}!`, 'success');
             }
 
             // Transition Loading

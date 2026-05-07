@@ -110,6 +110,25 @@ function persistProfileLocally(profile) {
     localStorage.setItem('b2b_users', JSON.stringify(nextUsers));
 }
 
+function persistProfileOverride(profile) {
+    const overrides = JSON.parse(localStorage.getItem('b2b_profile_overrides') || '{}');
+    const key = profile.id || profile.wa_number;
+    if (!key) return;
+
+    const override = {
+        name: profile.name || profile.full_name || '',
+        full_name: profile.full_name || profile.name || '',
+        photoUrl: profile.photoUrl || profile.photo_url || '',
+        photo_url: profile.photo_url || profile.photoUrl || '',
+        bio: profile.bio || '',
+        extra: profile.extra || ''
+    };
+
+    overrides[key] = override;
+    if (profile.wa_number) overrides[profile.wa_number] = override;
+    localStorage.setItem('b2b_profile_overrides', JSON.stringify(overrides));
+}
+
 window.toggleDropdown = function(dropdownId) {
     const dropdown = document.getElementById(dropdownId);
     if (dropdown) dropdown.classList.toggle('hidden');
@@ -411,6 +430,7 @@ async function saveAccountSettings() {
         };
 
         persistProfileLocally(currentUser);
+        persistProfileOverride(currentUser);
 
         if (window.showToast) showToast('Profil berhasil diperbarui!', 'success');
         window.closeModal('settings-modal');
